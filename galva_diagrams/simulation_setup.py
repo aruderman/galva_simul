@@ -42,7 +42,7 @@ class SimulationSetup:
     	Eoff : float
     	):
 
-		self.Npx = Npx
+	self.Npx = Npx
     	self.Npt = Npt
     	self.NPOINTS = NPOINTS
     	self.D = D
