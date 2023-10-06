@@ -21,43 +21,51 @@
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 class SimulationSetup:
-	def __init__(self,
-		Npx : int,
-    	Npt : int,
-    	NPOINTS : int,
-        D : float,
-    	ks : float,
-    	T : float,
-    	Mr : float,
-    	m : float,
-    	d : float,
-    	rho : float,
-    	Rohm : float,
-    	Xi0 : float,
-    	Xif : float,
-    	NXi : int,
-    	L0 : float,
-    	Lf : float,
-    	NL : int,
-    	Eoff : float
-    	):
+    def __init__(self,
+                 Npx: int,
+                 Npt: int,
+                 NPOINTS: int,
+                 Niso : int,
+                 D: float,
+                 ks: float,
+                 T: float,
+                 Mr: float,
+                 m: float,
+                 d: float,
+                 rho: float,
+                 Rohm: float,
+                 Xi0: float,
+                 Xif: float,
+                 NXi: int,
+                 L0: float,
+                 Lf: float,
+                 NL: int,
+                 Eoff: float
+                 ):
+        self.Npx = Npx
+        self.Npt = Npt
+        self.NPOINTS = NPOINTS
+        self.Niso = Niso
+        self.D = D
+        self.ks = ks
+        self.T = T
+        self.Mr = Mr
+        self.m = m
+        self.d = d
+        self.rho = rho
+        self.Rohm = Rohm
+        self.Xi0 = Xi0
+        self.Xif = Xif
+        self.NXi = NXi
+        self.L0 = L0
+        self.Lf = Lf
+        self.NL = NL
+        self.Eoff = Eoff
 
-	self.Npx = Npx
-    	self.Npt = Npt
-    	self.NPOINTS = NPOINTS
-    	self.D = D
-    	self.ks = ks
-    	self.T = T
-    	self.Mr = Mr
-    	self.m = m
-    	self.d = d
-    	self.rho = rho
-    	self.Rohm = Rohm
-    	self.Xi0 = Xi0
-    	self.Xif = Xif
-    	self.NXi = NXi
-    	self.L0 = L0
-    	self.Lf = Lf
-    	self.NL = NL
-    	self.Eoff = Eoff
+    def simulation_params(self):
 
+        return self.Npx, self.Npt, self.NPOINTS,
+        self.D, self.ks, self.T, self.Mr, self.m,
+        self.d, self.rho, self.Rohm,  self.Xi0,
+        self.Xif, self.NXi, self.L0, self.Lf,
+        self.NL, self.Eoff
