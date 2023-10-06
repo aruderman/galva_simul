@@ -20,28 +20,30 @@
 # CLASSES
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+
 class SimulationSetup:
-    def __init__(self,
-                 Npx: int,
-                 Npt: int,
-                 NPOINTS: int,
-                 Niso : int,
-                 D: float,
-                 ks: float,
-                 T: float,
-                 Mr: float,
-                 m: float,
-                 d: float,
-                 rho: float,
-                 Rohm: float,
-                 Xi0: float,
-                 Xif: float,
-                 NXi: int,
-                 L0: float,
-                 Lf: float,
-                 NL: int,
-                 Eoff: float
-                 ):
+    def __init__(
+        self,
+        Npx: int,
+        Npt: int,
+        NPOINTS: int,
+        Niso: int,
+        D: float,
+        ks: float,
+        T: float,
+        Mr: float,
+        m: float,
+        d: float,
+        rho: float,
+        Rohm: float,
+        Xi0: float,
+        Xif: float,
+        NXi: int,
+        L0: float,
+        Lf: float,
+        NL: int,
+        Eoff: float,
+    ):
         self.Npx = Npx
         self.Npt = Npt
         self.NPOINTS = NPOINTS
@@ -63,9 +65,24 @@ class SimulationSetup:
         self.Eoff = Eoff
 
     def simulation_params(self):
-
-        return self.Npx, self.Npt, self.NPOINTS,
-        self.D, self.ks, self.T, self.Mr, self.m,
-        self.d, self.rho, self.Rohm,  self.Xi0,
-        self.Xif, self.NXi, self.L0, self.Lf,
-        self.NL, self.Eoff
+        return (
+            self.Npx,
+            self.Npt,
+            self.NPOINTS,
+            self.Niso,
+            self.D,
+            self.ks,
+            self.T,
+            self.Mr,
+            self.m,
+            self.d,
+            self.rho,
+            self.Rohm,
+            self.Xi0,
+            self.Xif,
+            self.NXi,
+            self.L0,
+            self.Lf,
+            self.NL,
+            self.Eoff,
+        )
