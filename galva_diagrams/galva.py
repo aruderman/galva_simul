@@ -47,6 +47,7 @@ class galva_diagram:
         Rohm,
         Eoff,
         Qmax,
+        geo,
         ai,
         bi,
         ci,
@@ -73,6 +74,7 @@ class galva_diagram:
         self.Rohm = Rohm
         self.Eoff = Eoff
         self.Qmax = Qmax
+        self.geo = geo
         self.ai = ai
         self.bi = bi
         self.ci = ci
@@ -100,6 +102,7 @@ class galva_diagram:
             self.Rohm,
             self.Eoff,
             self.Qmax,
+            self.geo
         )
 
     def galva_calc(self):
@@ -119,6 +122,7 @@ class galva_diagram:
             ct.c_double,
             ct.c_double,
             ct.c_int,
+            ct.c_double,
             ct.c_double,
             ct.c_double,
             ct.c_double,
@@ -164,6 +168,7 @@ class galva_diagram:
             self.Rohm,
             self.Eoff,
             self.Qmax,
+            self.geo,
             self.ai.ctypes.data_as(ct.POINTER(ct.c_double)),
             self.bi.ctypes.data_as(ct.POINTER(ct.c_double)),
             self.ci.ctypes.data_as(ct.POINTER(ct.c_double)),
