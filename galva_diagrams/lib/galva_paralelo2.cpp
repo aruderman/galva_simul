@@ -21,9 +21,9 @@
 
 extern "C" void galva(int Npx, int Npt, int NPOINT, int Niso, double Xif, double Xi0, int NXi,
                       double Lf, double L0, int NL, double D, double ks, double T, double Mr,
-                      double m, double rho, double Rohm, double Eoff, double Qmax, double *ai, 
-                      double *bi, double *ci, double *di, double *titaeq, double *res1, 
-                      double *res2, double *res3) {
+                      double m, double rho, double Rohm, double Eoff, double Qmax, double geo,
+                      double *ai, double *bi, double *ci, double *di, double *titaeq, 
+                      double *res1, double *res2, double *res3) {
 
  // FILE *archivo;
 
@@ -82,7 +82,7 @@ extern "C" void galva(int Npx, int Npt, int NPOINT, int Niso, double Xif, double
         double Xi = pow(10, logXi[XI]);
         double Cr = (ks / Xi) * (ks / Xi) * (th / D);   /// C-rate
         double d = 2.0 * sqrt((L * 2.0 * D * th) / Cr); /// particle diameter, cm
-        double S = 4.0 * m / (rho * d);                 /// Surface area, cm2
+        double S = 2.0 * (1 + geo) * m / (rho * d); /// Surface area, cm2
         // double	Vol=m/rho; 						      	///Volume of
         // active mass, cm3
         double ic = - Cr * Qmax * m / (1000 * S); /// constant current density, A/cm2
@@ -112,7 +112,7 @@ extern "C" void galva(int Npx, int Npt, int NPOINT, int Niso, double Xif, double
 
         ////Backward implicit parameters and Constant Thomas coefficients
         double Abi = D * Dt / (Dd * Dd);
-        double Bbi = D * Dt / (2.0 * Dd);
+        double Bbi = geo * D * Dt / (2.0 * Dd);
         double A0bi = 1.0 + (2.0 * Abi);
         alfaT[1] = 2.0 * Abi / A0bi;
         for (int i = 2; i < Npx; i++) {
