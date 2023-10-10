@@ -46,8 +46,8 @@ extern "C" void galva(int Npx, int Npt, int NPOINT, int Niso, double Xif, double
   const double R = 8.314472;
   const double th = 3600.0;
   const double f = R * T / F;
-  const double deltaXi = (Xif - Xi0) / NXi;
-  const double deltaL = (Lf - L0) / NL;
+  const double deltaXi = (Xif - Xi0) / (NXi - 1);
+  const double deltaL = (Lf - L0) / (NL - 1);
 
   // Diagram parameters
   double logXi[NXi];
