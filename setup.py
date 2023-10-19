@@ -32,11 +32,10 @@ PATH = pathlib.Path(os.path.abspath(os.path.dirname(__file__)))
 
 REQUIREMENTS = [
     "matplotlib",
-    "more-itertools",
     "numpy",
     "pandas",
-    "scikit-learn",
-    "scipy",
+    "ctypes",
+    "csaps",
 ]
 
 galva_simul/galva_diagrams/lib/
