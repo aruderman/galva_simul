@@ -35,9 +35,10 @@ PATH = pathlib.Path(os.path.abspath(os.path.dirname(__file__)))
 
 
 class galva_diagram:
-    def __init__(self, params, spline):
+    def __init__(self, params, spline, model):
         self.params = params 
         self.spline = spline 
+        self.model = model
 
     @property
     def simulation_params(self):
@@ -46,9 +47,13 @@ class galva_diagram:
     def galva_calc(self):
 
         #lib_galva = ct.CDLL(PATH / "lib" / "galva_PIBB" / ".so")
-        lib_galva = ct.CDLL('../../paralelo/diagramas/galva_paralelo_chequeo.so')
+        if self.model == 'CN':
+            lib_galva = ct.CDLL('./lib/galva_PCN.so')
+        elif self.model == 'IBB':
+            lib_galva = ct.CDLL('./lib/galva_PIBB.so')
 
         lib_galva.galva.argtypes = [
+            ct.c_int,
             ct.c_int,
             ct.c_int,
             ct.c_int,
@@ -86,6 +91,7 @@ class galva_diagram:
         res3 = (ct.c_double * N)()
 
         lib_galva.galva(
+            self.params.N_THREADS,
             self.params.Npx,
             self.params.Npt,
             self.params.NPOINTS,

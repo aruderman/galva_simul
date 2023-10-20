@@ -24,6 +24,7 @@
 class SimulationSetup:
     def __init__(
         self,
+        N_THREADS: int,
         Npx: int,
         Npt: int,
         NPOINTS: int,
@@ -45,6 +46,7 @@ class SimulationSetup:
         Eoff: float,
         geo: int,
     ):
+        self.N_THREADS = N_THREADS
         self.Npx = Npx
         self.Npt = Npt
         self.NPOINTS = NPOINTS

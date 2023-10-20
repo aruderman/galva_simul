@@ -64,6 +64,7 @@ extern "C" void galva(int N_THREADS, int Npx, int Npt, int NPOINT, int Niso, dou
   }
   int pp = 0;
 
+  /// Threads define
   int num_threads = omp_get_num_procs();
   // omp_set_num_threads(num_threads);
   if (N_THREADS == -1) {
@@ -72,6 +73,7 @@ extern "C" void galva(int N_THREADS, int Npx, int Npt, int NPOINT, int Niso, dou
   } else {
     omp_set_num_threads(N_THREADS);
   }
+
   // printf("nt=%d",num_threads);getchar();
   // int thread_id
 /// DIAGRAM LOOP
@@ -127,7 +129,7 @@ extern "C" void galva(int N_THREADS, int Npx, int Npt, int NPOINT, int Niso, dou
         /// Initial Point
         double ti = 0.0;
         for (int i = 0; i < Npx; i++) {
-          tita1[i] = 1e-5;
+          tita1[i] = titaeq[1];
         }
         double Ei = Eoff + 1.0; // any value just that Ei>Eoff
         double E0 = 0.0;
@@ -155,8 +157,7 @@ extern "C" void galva(int N_THREADS, int Npx, int Npt, int NPOINT, int Niso, dou
           double dtitas = tita1[Npx - 1] - titad;
 
           // Equilibrium potential calculation
-          // double E0 = Ai + Bi * dtitas + Ci * dtitas * dtitas + Di * dtitas * dtitas * dtitas;
-          double E0 = 0;
+          double E0 = Ai + Bi * dtitas + Ci * dtitas * dtitas + Di * dtitas * dtitas * dtitas;
           double i0 = F * c1 * ks * sqrt(tita1[Npx - 1] * (1.0 - tita1[Npx - 1]));
           // Potential calculation
           Ei = E0 + 2.0 * f * asinh(ic / (2.0 * i0));
