@@ -19,11 +19,11 @@
 #include <stdlib.h>
 #include <time.h>
 
-extern "C" void galva(int Npx, int Npt, int NPOINT, int Niso, double Xif, double Xi0, int NXi,
-                      double Lf, double L0, int NL, double D, double ks, double T, double Mr,
-                      double m, double rho, double Rohm, double Eoff, double Qmax, double geo,
-                      double *ai, double *bi, double *ci, double *di, double *titaeq, double *res1,
-                      double *res2, double *res3) {
+extern "C" void galva(int N_THREADS, int Npx, int Npt, int NPOINT, int Niso, double Xif, double Xi0,
+                      int NXi, double Lf, double L0, int NL, double D, double ks, double T,
+                      double Mr, double m, double rho, double Rohm, double Eoff, double Qmax,
+                      double geo, double *ai, double *bi, double *ci, double *di, double *titaeq,
+                      double *res1, double *res2, double *res3) {
 
   // FILE *archivo;
 
@@ -66,9 +66,13 @@ extern "C" void galva(int Npx, int Npt, int NPOINT, int Niso, double Xif, double
 
   /// Threads define
   int num_threads = omp_get_num_procs();
-  omp_set_num_threads(num_threads);
-  // if(N_THREADS==0){int num_threads = omp_get_num_procs();omp_set_num_threads(num_threads);}
-  // else{omp_set_num_threads(N_THREADS);}
+  // omp_set_num_threads(num_threads);
+  if (N_THREADS == -1) {
+    int num_threads = omp_get_num_procs();
+    omp_set_num_threads(num_threads);
+  } else {
+    omp_set_num_threads(N_THREADS);
+  }
 
 /// DIAGRAM LOOP
 /// STEP-----------------------------------------------------------------------------------------
@@ -151,7 +155,7 @@ extern "C" void galva(int Npx, int Npt, int NPOINT, int Niso, double Xif, double
           double dtitas = tita1[Npx - 1] - titad;
 
           // Equilibrium potential calculation
-          //double E0 = Ai + Bi * dtitas + Ci * dtitas * dtitas + Di * dtitas * dtitas * dtitas;
+          // double E0 = Ai + Bi * dtitas + Ci * dtitas * dtitas + Di * dtitas * dtitas * dtitas;
           double E0 = 0;
           double i0 = F * c1 * ks * sqrt(tita1[Npx - 1] * (1.0 - tita1[Npx - 1]));
           // Potential calculation
