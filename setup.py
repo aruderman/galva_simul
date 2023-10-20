@@ -38,17 +38,21 @@ REQUIREMENTS = [
     "csaps",
 ]
 
-galva_simul/galva_diagrams/lib/
+#galva_simul/galva_diagrams/lib/
+
+COMMON = "galva_diagrams/lib/"
 
 CFLAGS = sysconfig.get_config_var("CFLAGS").split()
 CFLAGS += ["-O3", "-march=native", "-fopenmp", "-fPIC"]
 C_MODS = [
     Extension(
-        "galva_simul/galva_diagrams/lib/galva_paralelo2",
-        sources=["galva_simul/galva_diagrams/lib/galva_paralelo2.cpp"],
+        COMMON + "galva_" + mod,
+        sources=[COMMON + "galva_" + mod + ".cpp"],
         extra_compile_args=CFLAGS,
     )
+    for mod in ["PCN", "PIBB"]
 ]
+
 
 with open(PATH / "galva_simul" / "__init__.py") as fp:
     for line in fp.readlines():
