@@ -19,6 +19,7 @@
 import numpy as np
 from csaps import csaps
 import matplotlib.pyplot as plt
+import pandas as pd
 
 # ============================================================================
 # CLASSES
@@ -27,14 +28,18 @@ import matplotlib.pyplot as plt
 
 class Spline_params:
     def __init__(self, iso_path=None, Niso=49):
-        self.iso_path = iso_path
-        self.Niso = Niso
-        self.capacity = None
-        self.potential = None
+       # self.iso_path = iso_path
+       self.Niso = Niso
+       # self.capacity = None
+       # self.potential = None
 
-        # self.capacity = df.iloc[0].to_numpy()
-        # self.potential = df.iloc[1].to_numpy()
-        # self.Qmax = np.max(self.capacity, dtype=float)
+       names = ['capacity', 'potential']
+
+       self.df = pd.read_csv(iso_path, names=names)
+
+       self.capacity = self.df.capacity.to_numpy()
+       self.potential = self.df.potential.to_numpy()
+       self.Qmax = np.max(self.capacity)
 
     def read_iso(self):
         '''
