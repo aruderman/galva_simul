@@ -224,18 +224,18 @@ extern "C" void galva(bool model, double g, int N_THREADS, int Npx, int Npt, int
                       
 
             /// PRINT POTENTIAL PROFILE POINT
-            if (TP % NMOD == 0) {
+           // if (TP % NMOD == 0) {
               //printf("Ai=%f Bi=%f Ci=%f Di=%f E0=%f \n", Ai, Bi, Ci, Di, E0);
-              double SOC = 0.0;
-              for (int i = 0; i < Npx; i++) {
-                SOC += tita1[i];
-              }
-              SOC /= (NX - 1);
+            //  double SOC = 0.0;
+            //  for (int i = 0; i < Npx; i++) {
+             //   SOC += tita1[i];
+            //  }
+            //  SOC /= (NX - 1);
 
               //(archivo = fopen("Profile-Out.dat", "a"));
               // fprintf(archivo, "%f %f\n", (float)(SOC), (float)(Ei));
               // fclose(archivo);
-            }
+            //}
 
             /// ACTUALIZATION STEP
             for (int i = 0; i < Npx; i++) {
