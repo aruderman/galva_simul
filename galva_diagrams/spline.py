@@ -27,19 +27,22 @@ import pandas as pd
 
 
 class Spline_params:
-    def __init__(self, iso_path=None, Niso=49):
+    def __init__(self, iso_path=None):
        # self.iso_path = iso_path
-       self.Niso = Niso
+       # self.Niso = Niso
        # self.capacity = None
        # self.potential = None
 
        names = ['capacity', 'potential']
 
        self.df = pd.read_csv(iso_path, names=names)
-
        self.capacity = self.df.capacity.to_numpy()
-       self.potential = self.df.potential.to_numpy()
        self.Qmax = np.max(self.capacity)
+       self.capacity = self.df.capacity.to_numpy() / self.Qmax
+       self.potential = self.df.potential.to_numpy()
+       self.Eoff = np.min(self.potential)
+       self.Niso = self.df.shape[0]
+       
 
     def read_iso(self):
         '''

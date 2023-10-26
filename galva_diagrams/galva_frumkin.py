@@ -90,7 +90,7 @@ class galva_diagram:
         res3 = (ct.c_double * N)()
 
         lib_galva.galva(
-            self.params.model,
+            self.params.isotherm,
             self.params.g,
             self.params.N_THREADS,
             self.params.Npx,

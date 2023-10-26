@@ -153,6 +153,7 @@ extern "C" void galva(bool model, double g, int N_THREADS, int Npx, int Npt, int
         int Npot = 0;
         int TP = 0;
 
+
         /// TIME LOOP------------------------------------------------------------------------
         switch (model) {
         case false:
@@ -208,23 +209,23 @@ extern "C" void galva(bool model, double g, int N_THREADS, int Npx, int Npt, int
                 Bi = bi[i];
                 Ci = ci[i];
                 Di = di[i];
-                titad = 1e-5;
+                titad = titaeq[i];
                 break;
               }
             }
             double dtitas = tita1[Npx - 1] - titad;
 
             // Equilibrium potential calculation
-            //double E0 = Ai + Bi * dtitas + Ci * dtitas * dtitas + Di * dtitas * dtitas * dtitas;
-            double E0 = 0.0;
+            double E0 = Ai + Bi * dtitas + Ci * dtitas * dtitas + Di * dtitas * dtitas * dtitas;
+            //double E0 = 0.0;
             double i0 = F * c1 * ks * sqrt(tita1[Npx - 1] * (1.0 - tita1[Npx - 1]));
             // Potential calculation
             Ei = E0 + 2.0 * f * asinh(ic / (2.0 * i0));
-            // printf("dtit=%f Ai=%f Bi=%f Ci=%f Di=%f E0=%f i0=%f Ei=%f",dtitas, Ai, Bi, Ci, Di,
-            // E0, i0, Ei);
+                      
 
             /// PRINT POTENTIAL PROFILE POINT
             if (TP % NMOD == 0) {
+              //printf("Ai=%f Bi=%f Ci=%f Di=%f E0=%f \n", Ai, Bi, Ci, Di, E0);
               double SOC = 0.0;
               for (int i = 0; i < Npx; i++) {
                 SOC += tita1[i];
@@ -245,16 +246,15 @@ extern "C" void galva(bool model, double g, int N_THREADS, int Npx, int Npt, int
             // Vector of solutions and Thomas coefficients calculation ESTO CAMBIA CON CN
             bN[0] = A0nbi * tita0[0] + 2.0 * Abi * tita0[1]; /// CN
             bN[Npx - 1] = A0nbi * tita0[Npx - 1] + 2 * Abi * tita0[Npx - 2] -
-                          ((Abi + (Bbi / r[Npx - 1])) * 4.0 * Dd * (ic * iN)); /// CN
+                          ABmas[Npx - 1] * 4.0 * Dd * (ic * iN); /// CN
             for (int i = 1; i < Npx - 1; i++) {
-              bN[i] = A0nbi * tita0[i] + (Abi + (Bbi / r[Npx - 1])) * tita0[i + 1] +
-                      (Abi - (Bbi / r[Npx - 1])) * tita0[i - 1];
+              bN[i] = A0nbi * tita0[i] + ABmas[i] * tita0[i + 1] + ABmenos[i] * tita0[i - 1];
             } /// CN
 
             betaT[1] = bN[0] / A0bi;
             for (int i = 2; i < Npx; i++) {
-              betaT[i] = (bN[i - 1] + ((Abi - (Bbi / (r[i - 1]))) * betaT[i - 1])) /
-                         (A0bi - (Abi - (Bbi / (r[i - 1]))) * alfaT[i - 1]);
+              betaT[i] = (bN[i - 1] + ABmenos[i - 1] * betaT[i - 1]) /
+                         (A0bi - ABmenos[i - 1] * alfaT[i - 1]);
             }
 
             // Concentration calculation

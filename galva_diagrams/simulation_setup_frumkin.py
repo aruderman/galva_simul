@@ -24,37 +24,34 @@
 class SimulationSetup:
     def __init__(
         self,
-        model: bool,
-        g: float,
-        N_THREADS: int,
-        Npx: int,
-        Npt: int,
-        NPOINTS: int,
-        Niso: int,
         D: float,
         ks: float,
-        T: float,
         Mr: float,
         m: float,
         d: float,
         rho: float,
-        Rohm: float,
-        Xi0: float,
-        Xif: float,
-        NXi: int,
-        L0: float,
-        Lf: float,
-        NL: int,
-        Eoff: float,
-        geo: int,
+        isotherm=False,
+        g=0.5,
+        N_THREADS=-1,
+        Npx=1000,
+        Npt=int(3e6),
+        NPOINTS=100,
+        T=298.0,
+        Rohm=0,
+        Xi0=2.0,
+        Xif=-4.0,
+        NXi=5,
+        L0=2.0,
+        Lf=-4.0,
+        NL=5,
+        geo=0,
     ):
-        self.model = model
+        self.isotherm = isotherm
         self.g = g
         self.N_THREADS = N_THREADS
         self.Npx = Npx
         self.Npt = Npt
         self.NPOINTS = NPOINTS
-        self.Niso = Niso
         self.D = D
         self.ks = ks
         self.T = T
@@ -69,5 +66,8 @@ class SimulationSetup:
         self.L0 = L0
         self.Lf = Lf
         self.NL = NL
-        self.Eoff = Eoff
         self.geo = geo
+
+        if isotherm:
+            self.Niso = isotherm.Niso
+            self.Eoff = isotherm.Eoff
