@@ -46,7 +46,10 @@ class galva_diagram:
 
     def galva_calc(self):
 
-        lib_galva = ct.CDLL('./lib/galva_PCN_frumkin.so')
+        if self.params.method == 'CN':
+            lib_galva = ct.CDLL('./lib/galva_PCN_frumkin.so')
+        elif self.params.method == "BI":
+            lib_galva = ct.CDLL('./lib/galva_PBI_frumkin.so')
 
         lib_galva.galva.argtypes = [
             ct.c_bool,

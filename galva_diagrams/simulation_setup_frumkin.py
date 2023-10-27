@@ -23,16 +23,14 @@ from spline import Spline_params
 # CLASSES
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-
 class SimulationSetup:
     def __init__(
         self,
-        D: float,
-        ks: float,
         Mr: float,
         m: float,
-        d: float,
         rho: float,
+        D=3.647e-13,
+        ks=2.9502e-9,
         isotherm=False,
         g=0.5,
         N_THREADS=-1,
@@ -48,6 +46,7 @@ class SimulationSetup:
         Lf=-4.0,
         NL=5,
         geo=0,
+        method="CN",
     ):
         self.isotherm = isotherm
         self.g = g
@@ -60,7 +59,6 @@ class SimulationSetup:
         self.T = T
         self.Mr = Mr
         self.m = m
-        self.d = d
         self.rho = rho
         self.Rohm = Rohm
         self.Xi0 = Xi0
@@ -70,11 +68,13 @@ class SimulationSetup:
         self.Lf = Lf
         self.NL = NL
         self.geo = geo
+        self.method = method
 
         if isotherm:
             self.frumkin = False
         else:
-            self.isotherm = Spline_params(pd.DataFrame({"capacity":[134], "potential":[-0.15]}))
+            Qm = 96484.5561 / (3.6 * self.Mr)
+            self.isotherm = Spline_params(pd.DataFrame({"capacity":[Qm], "potential":[-0.15]}))
             self.isotherm.ai = np.array(0)
             self.isotherm.bi = np.array(0)
             self.isotherm.ci = np.array(0)
