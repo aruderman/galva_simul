@@ -37,9 +37,8 @@ PATH = pathlib.Path(os.path.abspath(os.path.dirname(__file__)))
 
 
 class galva_diagram:
-    def __init__(self, params, spline):
+    def __init__(self, params):
         self.params = params 
-        self.spline = spline 
 
     @property
     def simulation_params(self):
@@ -90,13 +89,13 @@ class galva_diagram:
         res3 = (ct.c_double * N)()
 
         lib_galva.galva(
-            self.params.isotherm,
+            self.params.frumkin,
             self.params.g,
             self.params.N_THREADS,
             self.params.Npx,
             self.params.Npt,
             self.params.NPOINTS,
-            self.params.Niso,
+            self.params.isotherm.Niso,
             self.params.Xif,
             self.params.Xi0,
             self.params.NXi,
@@ -110,14 +109,14 @@ class galva_diagram:
             self.params.m,
             self.params.rho,
             self.params.Rohm,
-            self.params.Eoff,
-            self.spline.Qmax,
+            self.params.isotherm.Eoff,
+            self.params.isotherm.Qmax,
             self.params.geo,
-            self.spline.ai.ctypes.data_as(ct.POINTER(ct.c_double)),
-            self.spline.bi.ctypes.data_as(ct.POINTER(ct.c_double)),
-            self.spline.ci.ctypes.data_as(ct.POINTER(ct.c_double)),
-            self.spline.di.ctypes.data_as(ct.POINTER(ct.c_double)),
-            self.spline.capacity.ctypes.data_as(ct.POINTER(ct.c_double)),
+            self.params.isotherm.ai.ctypes.data_as(ct.POINTER(ct.c_double)),
+            self.params.isotherm.bi.ctypes.data_as(ct.POINTER(ct.c_double)),
+            self.params.isotherm.ci.ctypes.data_as(ct.POINTER(ct.c_double)),
+            self.params.isotherm.di.ctypes.data_as(ct.POINTER(ct.c_double)),
+            self.params.isotherm.capacity.ctypes.data_as(ct.POINTER(ct.c_double)),
             res1,
             res2,
             res3,
@@ -130,8 +129,6 @@ class galva_diagram:
         self.SOC = np.asarray(np.frombuffer(res3, dtype=np.double, count=N))
 
 
-    def to_DataFrame(self):
-
         SOCC = []
 
         for sss in self.SOC:
@@ -143,12 +140,11 @@ class galva_diagram:
         Cr = [np.log(3600 / self.params.D *(self.params.ks / np.exp(xx))**2) for xx in self.logXi]
 
 
-        d = [np.log(self.params.D * np.exp(xx) / self.params.ks * np.sqrt(np.exp(l) * self.params.geo)) for xx, l in zip(self.logXi, self.logL)]
+        d = [np.log(self.params.D * np.exp(xx) / self.params.ks * np.sqrt(np.exp(l) * (1 + self.params.geo))) for xx, l in zip(self.logXi, self.logL)]
 
 
         self.df = pd.DataFrame({'L': self.logL, 'Xi': self.logXi, 'Cr': Cr, 'd': d, 'SOC': SOCC})
 
-        return self.df
 
     def plot(self, ax=None, plt_kws=None):
 

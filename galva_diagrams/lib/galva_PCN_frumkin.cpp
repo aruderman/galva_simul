@@ -134,12 +134,12 @@ extern "C" void galva(bool model, double g, int N_THREADS, int Npx, int Npt, int
 
         /// Initial Point
         switch (model) {
-        case false:
+        case true:
           for (int i = 0; i < Npx; i++) {
             tita1[i] = 1e-4;
           }
           break;
-        case true:
+        case false:
           for (int i = 0; i < Npx; i++) {
             tita1[i] = titaeq[0];
           }
@@ -156,7 +156,7 @@ extern "C" void galva(bool model, double g, int N_THREADS, int Npx, int Npt, int
 
         /// TIME LOOP------------------------------------------------------------------------
         switch (model) {
-        case false:
+        case true:
           while (Ei > Eoff) {
             /// POTENTIAL CALCULATION STEP
             // Search range of experimental points where superficial concentration (tita1) belongs
@@ -198,7 +198,7 @@ extern "C" void galva(bool model, double g, int N_THREADS, int Npx, int Npt, int
           }
           break;
 
-        case true:
+        case false:
           while (Ei > Eoff) {
             /// POTENTIAL CALCULATION STEP
             // Search range of experimental points where superficial concentration (tita1) belongs

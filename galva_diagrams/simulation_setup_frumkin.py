@@ -14,6 +14,9 @@
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # IMPORTS
+import numpy as np
+import pandas as pd
+from spline import Spline_params
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -69,5 +72,12 @@ class SimulationSetup:
         self.geo = geo
 
         if isotherm:
-            self.Niso = isotherm.Niso
-            self.Eoff = isotherm.Eoff
+            self.frumkin = False
+        else:
+            self.isotherm = Spline_params(pd.DataFrame({"capacity":[134], "potential":[-0.15]}))
+            self.isotherm.ai = np.array(0)
+            self.isotherm.bi = np.array(0)
+            self.isotherm.ci = np.array(0)
+            self.isotherm.di = np.array(0)
+            self.isotherm.capacity = np.array(0)
+            self.frumkin = True

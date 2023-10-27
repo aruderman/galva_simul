@@ -27,52 +27,21 @@ import pandas as pd
 
 
 class Spline_params:
-    def __init__(self, iso_path=None):
+    def __init__(self, df, col_names=["capacity", "potential"]):
        # self.iso_path = iso_path
        # self.Niso = Niso
        # self.capacity = None
        # self.potential = None
 
-       names = ['capacity', 'potential']
-
-       self.df = pd.read_csv(iso_path, names=names)
-       self.capacity = self.df.capacity.to_numpy()
+       # self.df = pd.read_csv(iso_path, names=names)
+       self.df = df
+       self.capacity = self.df[col_names[0]].to_numpy()
        self.Qmax = np.max(self.capacity)
-       self.capacity = self.df.capacity.to_numpy() / self.Qmax
-       self.potential = self.df.potential.to_numpy()
+       self.capacity = self.df[col_names[0]].to_numpy() / self.Qmax
+       self.potential = self.df[col_names[1]].to_numpy()
        self.Eoff = np.min(self.potential)
        self.Niso = self.df.shape[0]
        
-
-    def read_iso(self):
-        '''
-        Takes the path iso and reads the experimental isotherm. 
-        The format of the input file must be capacity vs. potential, 
-        separated by a space. Returns two arrays with numerical 
-        values of capacity and potential.
-        '''
-
-        try:
-            with open(self.iso_path, 'r') as iso_file:
-                lines = iso_file.readlines()
-
-            proc_iso = [line.strip().split() for line in lines]
-
-            capacity = np.array([float(line[0]) for line in proc_iso])
-
-            max_c = capacity.max()
-
-            self.capacity = np.array([cap / max_c for cap in capacity])
-
-            self.potential = np.array([float(line[1]) for line in proc_iso])
-
-            self.Qmax = float(max_c)
-            
-            return self.capacity, self.potential, float(max_c)
-
-        except FileNotFoundError:
-            print(f"File '{self.iso_path}' not found.")
-            return []
 
     def iso_csaps(self, smf=0.9999):
         '''
