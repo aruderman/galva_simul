@@ -10,21 +10,33 @@
 # DOCS
 # ============================================================================
 
-"""galva_diagram class of galva_simul."""
+"""galva_isotherm class of galva_simul."""
 
 # ============================================================================
 # IMPORTS
 # ============================================================================
 
-import numpy as np
 import ctypes as ct
+import os
+import pathlib
+import sysconfig
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+# ============================================================================
+# CONSTANTS
+# ============================================================================
+
+PATH = pathlib.Path(os.path.abspath(os.path.dirname(__file__)))
 
 # ============================================================================
 # CLASSES
 # ============================================================================
 
 
-class galva_diagram:
+class galva_isotherm:
     def __init__(self, params):
         self.params = params 
 
@@ -104,3 +116,23 @@ class galva_diagram:
         self.SOC = np.asarray(np.frombuffer(res1, dtype=np.double, count=N))
 
         self.E = np.asarray(np.frombuffer(res2, dtype=np.double, count=N))
+
+        self.df = pd.DataFrame({'SOC': [ss for ss in self.SOC if ss != 0.0], 'Potential': [ss for ss in self.E if ss != 0.0]})
+
+    def plot(self, ax=None, plt_kws=None):
+
+        ax = plt.gca() if ax is None else ax
+        plt_kws = {} if plt_kws is None else plt_kws
+
+        x = self.df['SOC']
+        y = self.df['Potential']
+
+        ax.plot(x, y) 
+
+        # Etiquetas de ejes y título
+        ax.set_xlabel('SOC')
+        ax.set_ylabel('Potential')
+        ax.set_title('Isotherm')
+
+        return ax
+
