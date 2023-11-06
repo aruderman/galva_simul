@@ -130,6 +130,6 @@ class Spline_params:
 
         plt_kws = {} if plt_kws is None else plt_kws
 
-        ax.plot(self.capacity, self.potential)
+        ax.plot(self.capacity, self.potential, **plt_kws)
 
         return ax

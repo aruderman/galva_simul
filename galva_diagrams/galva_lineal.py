@@ -127,7 +127,7 @@ class galva_isotherm:
         x = self.df['SOC']
         y = self.df['Potential']
 
-        ax.plot(x, y) 
+        ax.plot(x, y, **plt_kws) 
 
         # Etiquetas de ejes y título
         ax.set_xlabel('SOC')

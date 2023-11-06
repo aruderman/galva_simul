@@ -54,13 +54,8 @@ extern "C" void galva(bool model, double g, int N_THREADS, int Npx, int Npt, int
   double logL[NL];
   double ii = 0.0;
   for (int i = 0; i < NXi; i++) {
-    logXi[i] = Xi0 + deltaXi * ii;
-    ii++;
-  }
-  ii = 0.0;
-  for (int i = 0; i < NL; i++) {
-    logL[i] = L0 + deltaL * ii;
-    ii++;
+    logXi[i] = Xi0 + deltaXi * i;
+    logL[i] = L0 + deltaL * i;
   }
   int pp = 0;
 

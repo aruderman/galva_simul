@@ -34,7 +34,7 @@ class SimulationSetup:
         D=3.647e-13,
         ks=2.9502e-9,
         isotherm=False,
-        g=0.5,
+        g=0.0,
         Npx=1000,
         Npt=int(3e6),
         NPOINTS=100,
