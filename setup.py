@@ -43,16 +43,26 @@ REQUIREMENTS = [
 COMMON = "galva_diagrams/lib/"
 
 CFLAGS = sysconfig.get_config_var("CFLAGS").split()
-CFLAGS += ["-O3", "-march=native", "-fopenmp", "-fPIC"]
+CFLAGS += ["-O3", "-march=native", "-fPIC"]
 C_MODS = [
     Extension(
         COMMON + "galva_" + mod,
         sources=[COMMON + "galva_" + mod + ".cpp"],
         extra_compile_args=CFLAGS,
     )
-    for mod in ["PCN", "PIBB"]
+    for mod in ["LCN", "LBI"]
 ]
 
+CFLAGSP = sysconfig.get_config_var("CFLAGS").split()
+CFLAGSP += ["-O3", "-march=native", "-fopenmp", "-fPIC"]
+C_MODS = [
+    Extension(
+        COMMON + "galva_" + mod,
+        sources=[COMMON + "galva_" + mod + ".cpp"],
+        extra_compile_args=CFLAGS,
+    )
+    for mod in ["PCN", "PBI"]
+]
 
 with open(PATH / "galva_simul" / "__init__.py") as fp:
     for line in fp.readlines():
