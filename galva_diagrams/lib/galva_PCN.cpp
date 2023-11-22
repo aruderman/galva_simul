@@ -20,10 +20,10 @@
 #include <time.h>
 
 extern "C" void galva(bool model, double g, int N_THREADS, int Npx, int Npt, int NPOINT, int Niso,
-                      double Xif, double Xi0, int NXi, double Lf, double L0, int NL, double D,
-                      double ks, double T, double Mr, double m, double rho, double Rohm,
-                      double Eoff, double Qmax, double geo, double *ai, double *bi, double *ci,
-                      double *di, double *titaeq, double *res1, double *res2, double *res3) {
+                      int NL, int NXi, double D, double ks, double T, double Mr, double m,
+                      double rho, double Rohm, double Eoff, double Qmax, double geo, double *logL,
+                      double *logXi, double *ai, double *bi, double *ci, double *di, double *titaeq,
+                      double *res1, double *res2, double *res3) {
 
   // FILE *archivo;
 
@@ -46,17 +46,18 @@ extern "C" void galva(bool model, double g, int N_THREADS, int Npx, int Npt, int
   const double R = 8.314472;
   const double th = 3600.0;
   const double f = R * T / F;
-  const double deltaXi = (Xif - Xi0) / (NXi - 1);
-  const double deltaL = (Lf - L0) / (NL - 1);
+  // const double deltaXi = (Xif - Xi0) / (NXi - 1);
+  // const double deltaL = (Lf - L0) / (NL - 1);
 
   // Diagram parameters
-  double logXi[NXi];
-  double logL[NL];
-  double ii = 0.0;
-  for (int i = 0; i < NXi; i++) {
-    logXi[i] = Xi0 + deltaXi * i;
-    logL[i] = L0 + deltaL * i;
-  }
+  // double logXi[NXi];
+  // double logL[NL];
+  // double ii = 0.0;
+  // for (int i = 0; i < NXi; i++) {
+  // logXi[i] = Xi0 + deltaXi * ii;
+  // logL[i] = L0 + deltaL * ii;
+  //  i++;
+  //}
   int pp = 0;
 
   /// Threads define
@@ -148,7 +149,6 @@ extern "C" void galva(bool model, double g, int N_THREADS, int Npx, int Npt, int
         int Npot = 0;
         int TP = 0;
 
-
         /// TIME LOOP------------------------------------------------------------------------
         switch (model) {
         case true:
@@ -212,24 +212,23 @@ extern "C" void galva(bool model, double g, int N_THREADS, int Npx, int Npt, int
 
             // Equilibrium potential calculation
             double E0 = Ai + Bi * dtitas + Ci * dtitas * dtitas + Di * dtitas * dtitas * dtitas;
-            //double E0 = 0.0;
+            // double E0 = 0.0;
             double i0 = F * c1 * ks * sqrt(tita1[Npx - 1] * (1.0 - tita1[Npx - 1]));
             // Potential calculation
             Ei = E0 + 2.0 * f * asinh(ic / (2.0 * i0));
-                      
 
             /// PRINT POTENTIAL PROFILE POINT
-           // if (TP % NMOD == 0) {
-              //printf("Ai=%f Bi=%f Ci=%f Di=%f E0=%f \n", Ai, Bi, Ci, Di, E0);
+            // if (TP % NMOD == 0) {
+            // printf("Ai=%f Bi=%f Ci=%f Di=%f E0=%f \n", Ai, Bi, Ci, Di, E0);
             //  double SOC = 0.0;
             //  for (int i = 0; i < Npx; i++) {
-             //   SOC += tita1[i];
+            //   SOC += tita1[i];
             //  }
             //  SOC /= (NX - 1);
 
-              //(archivo = fopen("Profile-Out.dat", "a"));
-              // fprintf(archivo, "%f %f\n", (float)(SOC), (float)(Ei));
-              // fclose(archivo);
+            //(archivo = fopen("Profile-Out.dat", "a"));
+            // fprintf(archivo, "%f %f\n", (float)(SOC), (float)(Ei));
+            // fclose(archivo);
             //}
 
             /// ACTUALIZATION STEP

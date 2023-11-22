@@ -40,6 +40,8 @@ PATH = pathlib.Path(os.path.abspath(os.path.dirname(__file__)))
 class galva_diagram:
     def __init__(self, params):
         self.params = params 
+        self.logL = np.linspace(params.L0, params.Lf, params.NL)
+        self.logXi = np.linspace(params.Xi0, params.Xif, params.NXi)
 
     @property
     def simulation_params(self):
@@ -48,9 +50,9 @@ class galva_diagram:
     def galva_calc(self):
 
         if self.params.method == 'CN':
-            lib_galva = ct.CDLL('./lib/galva_PCN_frumkin.so')
+            lib_galva = ct.CDLL('./lib/galva_PCN.so')
         elif self.params.method == "BI":
-            lib_galva = ct.CDLL('./lib/galva_PBI_frumkin.so')
+            lib_galva = ct.CDLL('./lib/galva_PBI.so')
 
         lib_galva.galva.argtypes = [
             ct.c_bool,
@@ -60,11 +62,7 @@ class galva_diagram:
             ct.c_int,
             ct.c_int,
             ct.c_int,
-            ct.c_double,
-            ct.c_double,
             ct.c_int,
-            ct.c_double,
-            ct.c_double,
             ct.c_int,
             ct.c_double,
             ct.c_double,
@@ -76,6 +74,8 @@ class galva_diagram:
             ct.c_double,
             ct.c_double,
             ct.c_double,
+            ct.POINTER(ct.c_double),
+            ct.POINTER(ct.c_double),
             ct.POINTER(ct.c_double),
             ct.POINTER(ct.c_double),
             ct.POINTER(ct.c_double),
@@ -92,6 +92,8 @@ class galva_diagram:
         res2 = (ct.c_double * N)()
         res3 = (ct.c_double * N)()
 
+        
+
         lib_galva.galva(
             self.params.frumkin,
             self.params.g,
@@ -100,12 +102,8 @@ class galva_diagram:
             self.params.Npt,
             self.params.NPOINTS,
             self.params.isotherm.Niso,
-            self.params.Xif,
-            self.params.Xi0,
-            self.params.NXi,
-            self.params.Lf,
-            self.params.L0,
             self.params.NL,
+            self.params.NXi,
             self.params.D,
             self.params.ks,
             self.params.T,
@@ -116,6 +114,8 @@ class galva_diagram:
             self.params.isotherm.Eoff,
             self.params.isotherm.Qmax,
             self.params.geo,
+            self.logL.ctypes.data_as(ct.POINTER(ct.c_double)),
+            self.logXi.ctypes.data_as(ct.POINTER(ct.c_double)),
             self.params.isotherm.ai.ctypes.data_as(ct.POINTER(ct.c_double)),
             self.params.isotherm.bi.ctypes.data_as(ct.POINTER(ct.c_double)),
             self.params.isotherm.ci.ctypes.data_as(ct.POINTER(ct.c_double)),
