@@ -17,8 +17,11 @@
 # ============================================================================
 
 import numpy as np
+
 from csaps import csaps
+
 import matplotlib.pyplot as plt
+
 import pandas as pd
 
 # ============================================================================
@@ -26,7 +29,7 @@ import pandas as pd
 # ============================================================================
 
 
-class Spline_params:
+class SplineParams:
     def __init__(self, df, col_names=["capacity", "potential"]):
        # self.iso_path = iso_path
        # self.Niso = Niso
@@ -42,7 +45,7 @@ class Spline_params:
        self.Eoff = np.min(self.potential)
        self.Niso = self.df.shape[0]
        
-
+    """
     def iso_csaps(self, smf=0.9999):
         '''
         Sorts capacity and the potential in increasing  order of capacity.
@@ -71,6 +74,7 @@ class Spline_params:
 
         else:
             return "The SOC and potential has not been defined."
+    """
 
     def iso_spline(self):
         '''
@@ -123,13 +127,16 @@ class Spline_params:
         self.ci = ci
         self.di = di
 
-
+    """
     def plot(self, ax=None, plt_kws=None):
 
         ax = plt.gca() if ax is None else ax
 
         plt_kws = {} if plt_kws is None else plt_kws
 
-        ax.plot(self.capacity, self.potential, **plt_kws)
+        ax.scatter(self.capacity, self.potential, **plt_kws)
+
+        #ax.plot(spline...)
 
         return ax
+    """
