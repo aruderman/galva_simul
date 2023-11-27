@@ -10,7 +10,7 @@
 # DOCS
 # ============================================================================
 
-"""GalvanostaticMap class of Simulation."""
+"""GalvanostaticMap and GalvanostaticProfile classes of Simulation."""
 
 # ============================================================================
 # IMPORTS
@@ -45,17 +45,17 @@ PATH = pathlib.Path(os.path.abspath(os.path.dirname(__file__)))
 class GalvanostaticMap:
     r"""Diagnostic map tool for galvanostatic intercalation material analysis.
 
-    A tool to build a diagnostic map intercalation materials under galvanostatic conditions. 
-    
+    A tool to build a diagnostic map intercalation materials under galvanostatic conditions.
 
-    The present software runs a set ofgalvanostatic simulations [1]_ to 
-    systematically examine the maximum capacity that a material is capable to 
-    accommodate at the single-particle level under different experimental 
-    conditions. These simulations are used to build a diagnostic maps or zone 
-    diagram [2, 3]_. A similar concept is used here to construct level diagrams 
+
+    The present software runs a set ofgalvanostatic simulations [1]_ to
+    systematically examine the maximum capacity that a material is capable to
+    accommodate at the single-particle level under different experimental
+    conditions. These simulations are used to build a diagnostic maps or zone
+    diagram [2, 3]_. A similar concept is used here to construct level diagrams
     for galvanostatic simulations.
 
-   
+
 
     This physics-based heuristic model [1]_ uses the maps in
     :ref:`galpynostatic.datasets` to perform a grid search by taking different
@@ -149,6 +149,7 @@ class GalvanostaticMap:
     mse_ : float
         Mean squared error of the best fitted model.
     """
+
     def __init__(
         self,
         Mr: float,
@@ -201,6 +202,9 @@ class GalvanostaticMap:
 
         if isotherm:
             self.frumkin = False
+            df = pd.read_csv(self.isotherm, names=["capacity", "potential"])
+            self.isotherm = SplineParams(df)
+            self.isotherm.iso_spline()
         else:
             Qm = 96484.5561 / (3.6 * self.Mr)
             self.isotherm = SplineParams(
@@ -215,10 +219,6 @@ class GalvanostaticMap:
 
         self.logL = np.linspace(self.L0, self.Lf, self.NL)
         self.logxi = np.linspace(self.xi0, self.xif, self.Nxi)
-
-    @property
-    def simulation_params(self):
-        return self
 
     def calc(self):
         if self.method == "CN":
@@ -296,17 +296,11 @@ class GalvanostaticMap:
             res3,
         )
 
-        self.logL = np.asarray(
-            np.frombuffer(res1, dtype=np.double, count=N)
-        )
+        self.logL = np.asarray(np.frombuffer(res1, dtype=np.double, count=N))
 
-        self.logxi = np.asarray(
-            np.frombuffer(res2, dtype=np.double, count=N)
-        )
+        self.logxi = np.asarray(np.frombuffer(res2, dtype=np.double, count=N))
 
-        self.SOC = np.asarray(
-            np.frombuffer(res3, dtype=np.double, count=N)
-        )
+        self.SOC = np.asarray(np.frombuffer(res3, dtype=np.double, count=N))
 
         SOCC = []
 
@@ -316,35 +310,18 @@ class GalvanostaticMap:
             else:
                 SOCC.append(0.99999)
 
-        Cr = np.log10(
-            [
-                3600 / self.D * (self.ks / np.exp(xx)) ** 2
-                for xx in self.logxi
-            ]
-        )
-
-        d = np.log10(
-            [
-                2
-                * self.D
-                * np.exp(xx)
-                / self.ks
-                * np.sqrt(np.exp(l) * (1 + self.geo))
-                for xx, l in zip(self.logxi, self.logL)
-            ]
-        )
-
-        self.df = pd.DataFrame(
+        self.df_ = pd.DataFrame(
             {
                 "L": self.logL,
                 "xi": self.logxi,
-                "Cr": Cr,
-                "d": d,
                 "SOC": SOCC,
             }
         ).sort_values(by=["L", "xi"], ascending=[True, True])
-       
 
+    def to_dataframe(self):
+        return self.df_
+
+    """
     def plot_old(self, ax=None, plt_kws=None):
         ax = plt.gca() if ax is None else ax
         plt_kws = {} if plt_kws is None else plt_kws
@@ -372,16 +349,19 @@ class GalvanostaticMap:
         plt.colorbar(contour_plot, label="SOC")
 
         return ax
+    """
 
-    def plot(self, ax=None, plt_kws=None, clb=True, clb_label="SOC"):
+    def plot(
+        self, ax=None, plt_kws=None, clb=True, clb_label="SOC", save_path=False
+    ):
         ax = plt.gca() if ax is None else ax
 
-        x = self.df.L
-        y = self.df.xi
+        x = self.df_.L
+        y = self.df_.xi
 
         logells_ = np.unique(x)
         logxis_ = np.unique(y)
-        socs = self.df.SOC.to_numpy().reshape(logells_.size, logxis_.size)
+        socs = self.df_.SOC.to_numpy().reshape(logells_.size, logxis_.size)
 
         spline_ = scipy.interpolate.RectBivariateSpline(
             logells_, logxis_, socs
@@ -409,7 +389,10 @@ class GalvanostaticMap:
             clb.ax.set_ylim((0, 1))
 
         ax.set_xlabel(r"log($\ell$)")
-        ax.set_ylabel(r"log($\xi$)")
+        ax.set_ylabel(r"log($\Xi$)")
+
+        if save_path:
+            plt.savefig(save_path, bbox_inches="tight", pad_inches=0)
 
         return ax
 
@@ -451,8 +434,13 @@ class GalvanostaticProfile:
         self.geo = geo
         self.method = method
 
+        print("entre")
+
         if isotherm:
             self.frumkin = False
+            df = pd.read_csv(self.isotherm, names=["capacity", "potential"])
+            self.isotherm = SplineParams(df)
+            self.isotherm.iso_spline()
         else:
             Qm = 96484.5561 / (3.6 * self.Mr)
             self.isotherm = SplineParams(
@@ -464,10 +452,6 @@ class GalvanostaticProfile:
             self.isotherm.di = np.array(0)
             self.isotherm.capacity = np.array(0)
             self.frumkin = True
-
-    @property
-    def simulation_params(self):
-        return self
 
     def calc(self):
         if self.method == "CN":
@@ -536,9 +520,7 @@ class GalvanostaticProfile:
             res2,
         )
 
-        self.SOC = np.asarray(
-            np.frombuffer(res1, dtype=np.double, count=N)
-        )
+        self.SOC = np.asarray(np.frombuffer(res1, dtype=np.double, count=N))
 
         self.E = np.asarray(np.frombuffer(res2, dtype=np.double, count=N))
 
