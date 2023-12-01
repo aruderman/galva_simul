@@ -29,7 +29,7 @@ import pandas as pd
 
 import scipy.interpolate
 
-from spline import SplineParams
+from .spline import SplineParams
 
 # ============================================================================
 # CONSTANTS
@@ -173,8 +173,7 @@ class GalvanostaticMap:
         NL=5,
         geo=0,
         method="CN",
-        xi=0,
-        L=0,
+        Efin=-0.15,
     ):
         self.isotherm = isotherm
         self.g = g
@@ -197,8 +196,7 @@ class GalvanostaticMap:
         self.NL = NL
         self.geo = geo
         self.method = method
-        self.xi = xi
-        self.L = L
+        self.Efin = Efin
 
         if isotherm:
             self.frumkin = False
@@ -208,7 +206,7 @@ class GalvanostaticMap:
         else:
             Qm = 96484.5561 / (3.6 * self.Mr)
             self.isotherm = SplineParams(
-                pd.DataFrame({"capacity": [Qm], "potential": [-0.15]})
+                pd.DataFrame({"capacity": [Qm], "potential": [self.Efin]})
             )
             self.isotherm.ai = np.array(0)
             self.isotherm.bi = np.array(0)
@@ -351,9 +349,7 @@ class GalvanostaticMap:
         return ax
     """
 
-    def plot(
-        self, ax=None, plt_kws=None, clb=True, clb_label="SOC", save_path=False
-    ):
+    def plot(self, ax=None, plt_kws=None, clb=True, clb_label="SOC"):
         ax = plt.gca() if ax is None else ax
 
         x = self.df_.L
@@ -391,9 +387,6 @@ class GalvanostaticMap:
         ax.set_xlabel(r"log($\ell$)")
         ax.set_ylabel(r"log($\Xi$)")
 
-        if save_path:
-            plt.savefig(save_path, bbox_inches="tight", pad_inches=0)
-
         return ax
 
 
@@ -416,6 +409,7 @@ class GalvanostaticProfile:
         Rohm=0,
         geo=0,
         method="CN",
+        Efin=-0.15,
     ):
         self.isotherm = isotherm
         self.g = g
@@ -433,8 +427,8 @@ class GalvanostaticProfile:
         self.L = L
         self.geo = geo
         self.method = method
+        self.Efin = Efin
 
-        print("entre")
 
         if isotherm:
             self.frumkin = False
@@ -444,7 +438,7 @@ class GalvanostaticProfile:
         else:
             Qm = 96484.5561 / (3.6 * self.Mr)
             self.isotherm = SplineParams(
-                pd.DataFrame({"capacity": [Qm], "potential": [-0.15]})
+                pd.DataFrame({"capacity": [Qm], "potential": [self.Efin]})
             )
             self.isotherm.ai = np.array(0)
             self.isotherm.bi = np.array(0)
@@ -531,7 +525,7 @@ class GalvanostaticProfile:
             }
         )
 
-    def plot(self, ax=None, plt_kws=None, clb=True, clb_label="SOC"):
+    def plot(self, ax=None, plt_kws=None):
         ax = plt.gca() if ax is None else ax
         plt_kws = {} if plt_kws is None else plt_kws
 
@@ -544,6 +538,7 @@ class GalvanostaticProfile:
         ax.set_xlabel("SOC")
         ax.set_ylabel("Potential")
         ax.set_title("Isotherm")
+        #ax.legend()
 
         return ax
 
