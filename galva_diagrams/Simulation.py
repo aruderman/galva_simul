@@ -29,13 +29,23 @@ import pandas as pd
 
 import scipy.interpolate
 
-from .spline import SplineParams
+from spline import SplineParams
 
 # ============================================================================
 # CONSTANTS
 # ============================================================================
 
 PATH = pathlib.Path(os.path.abspath(os.path.dirname(__file__)))
+
+_PROFILE_LIBS = {
+    "CN": ct.CDLL(PATH / "lib" / "galva_LCN.so"),
+    "BI": ct.CDLL(PATH / "lib" / "galva_LBI.so"),
+}
+
+_MAPS_LIBS = {
+    "CN": ct.CDLL(PATH / "lib" / "galva_PCN.so"),
+    "BI": ct.CDLL(PATH / "lib" / "galva_PBI.so"),
+}
 
 # ============================================================================
 # CLASSES
@@ -219,10 +229,7 @@ class GalvanostaticMap:
         self.logxi = np.linspace(self.xi0, self.xif, self.Nxi)
 
     def calc(self):
-        if self.method == "CN":
-            lib_galva = ct.CDLL("./lib/galva_PCN.so")
-        elif self.method == "BI":
-            lib_galva = ct.CDLL("./lib/galva_PBI.so")
+        lib_galva = _MAPS_LIBS[self.method]
 
         lib_galva.galva.argtypes = [
             ct.c_bool,
@@ -359,9 +366,7 @@ class GalvanostaticMap:
         logxis_ = np.unique(y)
         socs = self.df_.SOC.to_numpy().reshape(logells_.size, logxis_.size)
 
-        spline_ = scipy.interpolate.RectBivariateSpline(
-            logells_, logxis_, socs
-        )
+        spline_ = scipy.interpolate.RectBivariateSpline(logells_, logxis_, socs)
 
         xeval = np.linspace(x.min(), x.max(), 1000)
         yeval = np.linspace(y.min(), y.max(), 1000)
@@ -429,7 +434,6 @@ class GalvanostaticProfile:
         self.method = method
         self.Efin = Efin
 
-
         if isotherm:
             self.frumkin = False
             df = pd.read_csv(self.isotherm, names=["capacity", "potential"])
@@ -448,10 +452,7 @@ class GalvanostaticProfile:
             self.frumkin = True
 
     def calc(self):
-        if self.method == "CN":
-            lib_galva = ct.CDLL("./lib/galva_LCN.so")
-        elif self.method == "BI":
-            lib_galva = ct.CDLL("./lib/galva_LBI.so")
+        lib_galva = _PROFILE_LIBS[self.method]
 
         lib_galva.galva.argtypes = [
             ct.c_bool,
@@ -538,7 +539,7 @@ class GalvanostaticProfile:
         ax.set_xlabel("SOC")
         ax.set_ylabel("Potential")
         ax.set_title("Isotherm")
-        #ax.legend()
+        # ax.legend()
 
         return ax
 

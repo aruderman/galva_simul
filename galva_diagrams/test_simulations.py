@@ -18,9 +18,9 @@ import matplotlib.pyplot as plt
 from matplotlib.testing.decorators import check_figures_equal
 
 # import galpynostatic.simulation.spline
-from .spline import SplineParams
+from spline import SplineParams
 
-from .Simulation import GalvanostaticProfile, GalvanostaticMap
+from Simulation import GalvanostaticProfile, GalvanostaticMap
 
 import numpy as np
 
@@ -186,7 +186,7 @@ def test_plot(fig_test, fig_ref, method):
         ),
         (
             "CN",
-            "./LMO-1C.csv",
+            PATH / "LMO-1C.csv",
             [0.589062, 7.44792e-7, 1.000949],
         ),
         (
@@ -196,7 +196,7 @@ def test_plot(fig_test, fig_ref, method):
         ),
         (
             "BI",
-            "./LMO-1C.csv",
+            PATH / "LMO-1C.csv",
             [0.589062, 7.44792e-7, 1.000949],
         ),
     ],
@@ -223,9 +223,9 @@ class TestGalvanostaticMap:
     ("method", "isotherm"),
     [
         ("CN", False),
-        ("CN", "./LMO-1C.csv"),
+        ("CN", PATH / "LMO-1C.csv"),
         ("BI", False),
-        ("BI", "./LMO-1C.csv"),
+        ("BI", PATH / "LMO-1C.csv"),
     ],
 )
 @check_figures_equal(extensions=["png", "pdf"], tol=0.000001)
