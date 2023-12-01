@@ -18,7 +18,7 @@
 
 import numpy as np
 
-from csaps import csaps
+#from csaps import csaps
 
 import matplotlib.pyplot as plt
 
@@ -44,7 +44,7 @@ class SplineParams:
        self.potential = self.df[col_names[1]].to_numpy()
        self.Eoff = np.min(self.potential)
        self.Niso = self.df.shape[0]
-       
+
     """
     def iso_csaps(self, smf=0.9999):
         '''
@@ -80,8 +80,8 @@ class SplineParams:
         '''
         The function iso_spline takes the  normalized experimental
         capacity or the smooth isotherm.
-        It returns the parameters ai, bi, ci, and di of the cubic 
-        spline of the isotherm. These parameters can be used to 
+        It returns the parameters ai, bi, ci, and di of the cubic
+        spline of the isotherm. These parameters can be used to
         calculate the equilibrium potential.
         '''
 
