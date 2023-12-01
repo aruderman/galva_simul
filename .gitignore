@@ -1,0 +1,4 @@
+*.so
+run*
+
+/result_images/
