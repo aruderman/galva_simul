@@ -18,9 +18,9 @@ import matplotlib.pyplot as plt
 from matplotlib.testing.decorators import check_figures_equal
 
 # import galpynostatic.simulation.spline
-from spline import SplineParams
+from .spline import SplineParams
 
-from Simulation import GalvanostaticProfile, GalvanostaticMap
+from .Simulation import GalvanostaticProfile, GalvanostaticMap
 
 import numpy as np
 
@@ -153,7 +153,7 @@ class TestGalvanostaticProfile:
     ],
 )
 @check_figures_equal(extensions=["png", "pdf"], tol=0.000001)
-def test_plot(fig_test, fig_ref, method):
+def test_plot_prifle(fig_test, fig_ref, method):
     profile = GalvanostaticProfile(
         180.815,
         2.26e-3,
@@ -219,6 +219,7 @@ class TestGalvanostaticMap:
         np.testing.assert_almost_equal(np.min(galvamap.SOC), refs[1], 4)
         np.testing.assert_almost_equal(np.max(galvamap.SOC), refs[2], 6)
 
+
 @pytest.mark.parametrize(
     ("method", "isotherm"),
     [
@@ -238,13 +239,14 @@ def test_map_plot(fig_test, fig_ref, method, isotherm):
         Nxi=4,
         Npt=20000,
         method=method,
-        isotherm=isotherm
+        isotherm=isotherm,
     )
     galvamap.calc()
 
     test_ax = fig_test.subplots()
     galvamap.plot(ax=test_ax)
 
+    plt.clf()
     ref_ax = fig_ref.subplots()
 
     x = galvamap.df_.L
@@ -254,9 +256,7 @@ def test_map_plot(fig_test, fig_ref, method, isotherm):
     logxis_ = np.unique(y)
     socs = galvamap.df_.SOC.to_numpy().reshape(logells_.size, logxis_.size)
 
-    spline_ = scipy.interpolate.RectBivariateSpline(
-        logells_, logxis_, socs
-    )
+    spline_ = scipy.interpolate.RectBivariateSpline(logells_, logxis_, socs)
 
     xeval = np.linspace(x.min(), x.max(), 1000)
     yeval = np.linspace(y.min(), y.max(), 1000)
@@ -280,3 +280,5 @@ def test_map_plot(fig_test, fig_ref, method, isotherm):
 
     ref_ax.set_xlabel(r"log($\ell$)")
     ref_ax.set_ylabel(r"log($\Xi$)")
+
+    plt.close(fig_ref)
