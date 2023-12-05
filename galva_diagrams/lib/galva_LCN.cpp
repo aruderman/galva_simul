@@ -21,9 +21,9 @@
 
 extern "C" void galva(bool frumkin, double g, int Npx, int Npt, int NPOINT, int Niso, double D,
                       double ks, double T, double Mr, double m, double rho, double Rohm,
-                      double Eoff, double Qmax, double geo, double logXi, double logL, double *ai,
-                      double *bi, double *ci, double *di, double *titaeq, double *res1,
-                      double *res2) {
+                      double Eoff, double Qmax, double geo, double logXi, double logL,
+                      double SOCperf, double *ai, double *bi, double *ci, double *di,
+                      double *titaeq, double *res1, double *res2, double *res3, double *res4) {
 
   // Defining simulation parameters
   // int 		omp_get_num_threads(void);
@@ -55,16 +55,11 @@ extern "C" void galva(bool frumkin, double g, int Npx, int Npt, int NPOINT, int 
   double Dd = 0.5 * d / (NX - 1.0); /// space step, cm
 
   // Cleaning vectors
-  double betaT[Npx], alfaT[Npx], bN[Npx], tita0[Npx], tita1[Npx];
+  double betaT[Npx], alfaT[Npx], bN[Npx], tita0[Npx], tita1[Npx], r[Npx];
 
   for (int i = 0; i < Npx; i++) {
     betaT[i] = alfaT[i] = bN[i] = tita0[i] = tita1[i] = 0.0;
-  }
-  double ii = 0.0;
-  double r[Npx];
-  for (int i = 0; i < Npx; i++) {
-    r[i] = ii * Dd;
-    ii++;
+    r[i] = i * Dd;
   }
 
   ////Crank Nicholson parameters and Constant Thomas coefficients
@@ -104,6 +99,8 @@ extern "C" void galva(bool frumkin, double g, int Npx, int Npt, int NPOINT, int 
   int Npot = 0;
   int TP = 0;
   int hh = 0;
+  int out = 0;
+  double step = 1e-4;
 
   /// TIME LOOP------------------------------------------------------------------------
   switch (frumkin) {
@@ -119,16 +116,27 @@ extern "C" void galva(bool frumkin, double g, int Npx, int Npt, int NPOINT, int 
       Ei = Eg + 2.0 * f * asinh(ic / (2.0 * i0));
 
       /// PRINT POTENTIAL PROFILE POINT
-      if (TP % NMOD == 0) {
-        double SOC = 0.0;
-        for (int i = 0; i < Npx; i++) {
-          SOC += tita1[i];
-        }
-        SOC /= (NX - 1);
 
+      double SOC = 0.0;
+      for (int i = 0; i < Npx; i++) {
+        SOC += tita1[i];
+      }
+      SOC /= (NX - 1);
+
+      if (TP % NMOD == 0) {
         res1[hh] = SOC;
         res2[hh] = Ei;
         hh++;
+      }
+
+      if ((SOC > SOCperf - step) && (SOC < SOCperf + step)) {
+        if (out == 0) {
+          for (int i = 0; i < Npx; i++) {
+            res3[i] = r[i] / (d * 0.5);
+            res4[i] = tita1[i];
+          }
+          out++;
+        }
       }
 
       /// ACTUALIZATION STEP
@@ -187,16 +195,26 @@ extern "C" void galva(bool frumkin, double g, int Npx, int Npt, int NPOINT, int 
       Ei = E0 + 2.0 * f * asinh(ic / (2.0 * i0));
 
       /// PRINT POTENTIAL PROFILE POINT
-      if (TP % NMOD == 0) {
-        double SOC = 0.0;
-        for (int i = 0; i < Npx; i++) {
-          SOC += tita1[i];
-        }
-        SOC /= (NX - 1);
+      double SOC = 0.0;
+      for (int i = 0; i < Npx; i++) {
+        SOC += tita1[i];
+      }
+      SOC /= (NX - 1);
 
+      if (TP % NMOD == 0) {
         res1[hh] = SOC;
         res2[hh] = Ei;
         hh++;
+      }
+
+      if ((SOC > SOCperf - step) && (SOC < SOCperf + step)) {
+        if (out == 0) {
+          for (int i = 0; i < Npx; i++) {
+            res3[i] = r[i] / (d * 0.5);
+            res4[i] = tita1[i];
+          }
+          out++;
+        }
       }
 
       /// ACTUALIZATION STEP

@@ -29,7 +29,7 @@ import pandas as pd
 
 import scipy.interpolate
 
-from spline import SplineParams
+from .spline import SplineParams
 
 # ============================================================================
 # CONSTANTS
@@ -181,7 +181,7 @@ class GalvanostaticMap:
         L0=2.0,
         Lf=-4.0,
         NL=5,
-        geo=0,
+        geo=2,
         method="CN",
         Efin=-0.15,
     ):
@@ -315,7 +315,7 @@ class GalvanostaticMap:
             else:
                 SOCC.append(0.99999)
 
-        self.df_ = pd.DataFrame(
+        self._df = pd.DataFrame(
             {
                 "L": self.logL,
                 "xi": self.logxi,
@@ -324,7 +324,7 @@ class GalvanostaticMap:
         ).sort_values(by=["L", "xi"], ascending=[True, True])
 
     def to_dataframe(self):
-        return self.df_
+        return self._df
 
     """
     def plot_old(self, ax=None, plt_kws=None):
@@ -359,12 +359,12 @@ class GalvanostaticMap:
     def plot(self, ax=None, plt_kws=None, clb=True, clb_label="SOC"):
         ax = plt.gca() if ax is None else ax
 
-        x = self.df_.L
-        y = self.df_.xi
+        x = self._df.L
+        y = self._df.xi
 
         logells_ = np.unique(x)
         logxis_ = np.unique(y)
-        socs = self.df_.SOC.to_numpy().reshape(logells_.size, logxis_.size)
+        socs = self._df.SOC.to_numpy().reshape(logells_.size, logxis_.size)
 
         spline_ = scipy.interpolate.RectBivariateSpline(
             logells_, logxis_, socs
@@ -414,9 +414,10 @@ class GalvanostaticProfile:
         NPOINTS=100,
         T=298.0,
         Rohm=0,
-        geo=0,
+        geo=2,
         method="CN",
         Efin=-0.15,
+        SOCperf=0.5,
     ):
         self.isotherm = isotherm
         self.g = g
@@ -435,6 +436,7 @@ class GalvanostaticProfile:
         self.geo = geo
         self.method = method
         self.Efin = Efin
+        self.SOCperf = SOCperf
 
         if isotherm:
             self.frumkin = False
@@ -475,6 +477,9 @@ class GalvanostaticProfile:
             ct.c_double,
             ct.c_double,
             ct.c_double,
+            ct.c_double,
+            ct.POINTER(ct.c_double),
+            ct.POINTER(ct.c_double),
             ct.POINTER(ct.c_double),
             ct.POINTER(ct.c_double),
             ct.POINTER(ct.c_double),
@@ -488,6 +493,8 @@ class GalvanostaticProfile:
 
         res1 = (ct.c_double * N)()
         res2 = (ct.c_double * N)()
+        res3 = (ct.c_double * self.Npx)()
+        res4 = (ct.c_double * self.Npx)()
 
         lib_galva.galva(
             self.frumkin,
@@ -508,6 +515,7 @@ class GalvanostaticProfile:
             self.geo,
             self.xi,
             self.L,
+            self.SOCperf,
             self.isotherm.ai.ctypes.data_as(ct.POINTER(ct.c_double)),
             self.isotherm.bi.ctypes.data_as(ct.POINTER(ct.c_double)),
             self.isotherm.ci.ctypes.data_as(ct.POINTER(ct.c_double)),
@@ -515,25 +523,37 @@ class GalvanostaticProfile:
             self.isotherm.capacity.ctypes.data_as(ct.POINTER(ct.c_double)),
             res1,
             res2,
+            res3,
+            res4,
         )
 
         self.SOC = np.asarray(np.frombuffer(res1, dtype=np.double, count=N))
 
         self.E = np.asarray(np.frombuffer(res2, dtype=np.double, count=N))
 
-        self.df = pd.DataFrame(
+        self.r_norm = np.asarray(
+            np.frombuffer(res3, dtype=np.double, count=self.Npx)
+        )
+
+        self.tita1 = np.asarray(
+            np.frombuffer(res4, dtype=np.double, count=self.Npx)
+        )
+
+        self._df = pd.DataFrame(
             {
                 "SOC": [ss for ss in self.SOC if ss != 0.0],
                 "Potential": [ss for ss in self.E if ss != 0.0],
             }
         )
 
+        self.condf = pd.DataFrame({"r_norm": self.r_norm, "tita": self.tita1})
+
     def plot(self, ax=None, plt_kws=None):
         ax = plt.gca() if ax is None else ax
         plt_kws = {} if plt_kws is None else plt_kws
 
-        x = self.df["SOC"]
-        y = self.df["Potential"]
+        x = self._df["SOC"]
+        y = self._df["Potential"]
 
         ax.plot(x, y, **plt_kws)
 

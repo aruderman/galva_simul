@@ -20,7 +20,8 @@ from matplotlib.testing.decorators import check_figures_equal
 # import galpynostatic.simulation.spline
 from .spline import SplineParams
 
-from .Simulation import GalvanostaticProfile, GalvanostaticMap
+from .Simulation import GalvanostaticMap
+from .prof import GalvanostaticProfile
 
 import numpy as np
 
@@ -78,7 +79,16 @@ def test_spline(capacity, potential, refs):
             "CN",
             False,
             [
-                [0.428358, 0.0, 0.921084],
+                [0.477057, 0.0, 0.972238],
+                [-0.006383, -0.120818, 0.157191],
+                PATH / "test_data" / "profileCN.csv",
+            ],
+        ),
+        (
+            "CN",
+            PATH / "LMO-1C.csv",
+            [
+                [0.477057, 0.0, 0.972238],
                 [-0.006383, -0.120818, 0.157191],
                 PATH / "test_data" / "profileCN.csv",
             ],
@@ -95,7 +105,7 @@ def test_spline(capacity, potential, refs):
     ],
 )
 class TestGalvanostaticProfile:
-    def test_soc(self, method, isotherm, refs):
+    def test_profile_soc(self, method, isotherm, refs):
         profile = GalvanostaticProfile(
             180.815,
             2.26e-3,
@@ -111,23 +121,24 @@ class TestGalvanostaticProfile:
         np.testing.assert_almost_equal(np.mean(profile.SOC), refs[0][0], 6)
         np.testing.assert_almost_equal(np.min(profile.SOC), refs[0][1], 6)
         np.testing.assert_almost_equal(np.max(profile.SOC), refs[0][2], 6)
-
+    
     def test_potential(self, method, isotherm, refs):
         profile = GalvanostaticProfile(
             180.815,
             2.26e-3,
             4.58,
+            method=method,
             L=-1,
             xi=1,
             Npt=20000,
-            method=method,
+            isotherm=isotherm,
         )
         profile.calc()
 
         np.testing.assert_almost_equal(np.mean(profile.E), refs[1][0], 6)
         np.testing.assert_almost_equal(np.min(profile.E), refs[1][1], 6)
         np.testing.assert_almost_equal(np.max(profile.E), refs[1][2], 6)
-
+        
     def test_dataframe(self, method, isotherm, refs):
         df = pd.read_csv(refs[2])
 
@@ -142,18 +153,20 @@ class TestGalvanostaticProfile:
         )
         profile.calc()
 
-        pd.testing.assert_frame_equal(profile.df, df)
-
+        pd.testing.assert_frame_equal(profile._df, df)
+    
 
 @pytest.mark.parametrize(
-    ("method",),
+    ("method", "isotherm"),
     [
-        ("CN",),
-        ("BI",),
+        ("CN", False),
+        # ("CN", PATH / "LMO-1C.csv"),
+        ("BI", False),
+        # ("BI", PATH / "LMO-1C.csv"),
     ],
 )
 @check_figures_equal(extensions=["png", "pdf"], tol=0.000001)
-def test_plot_prifle(fig_test, fig_ref, method):
+def test_plot_profile(fig_test, fig_ref, method, isotherm):
     profile = GalvanostaticProfile(
         180.815,
         2.26e-3,
@@ -162,6 +175,7 @@ def test_plot_prifle(fig_test, fig_ref, method):
         xi=1,
         Npt=20000,
         method=method,
+        isotherm=isotherm,
     )
     profile.calc()
 
@@ -169,7 +183,7 @@ def test_plot_prifle(fig_test, fig_ref, method):
     profile.plot(ax=test_ax)
 
     ref_ax = fig_ref.subplots()
-    ref_ax.plot(profile.df["SOC"], profile.df["Potential"])
+    ref_ax.plot(profile._df["SOC"], profile._df["Potential"])
 
     ref_ax.set_xlabel("SOC")
     ref_ax.set_ylabel("Potential")
@@ -182,27 +196,39 @@ def test_plot_prifle(fig_test, fig_ref, method):
         (
             "CN",
             False,
-            [0.417645, 0.000100, 0.998098],
+            [
+                [0.425895, 0.000100, 0.998085],
+                PATH / "test_data" / "mapCN.csv",
+            ],
         ),
         (
             "CN",
             PATH / "LMO-1C.csv",
-            [0.589062, 7.44792e-7, 1.000949],
+            [
+                [0.599868, 7.44792e-7, 1.000937],
+                PATH / "test_data" / "mapCN_iso.csv",
+            ],
         ),
         (
             "BI",
             False,
-            [0.417645, 0.000100, 0.9980978],
+            [
+                [0.425895, 0.000100, 0.998085],
+                PATH / "test_data" / "mapBI.csv",
+            ],
         ),
         (
             "BI",
             PATH / "LMO-1C.csv",
-            [0.589062, 7.44792e-7, 1.000949],
+            [
+                [0.599868, 7.44792e-7, 1.000937],
+                PATH / "test_data" / "mapBI_iso.csv",
+            ],
         ),
     ],
 )
 class TestGalvanostaticMap:
-    def test_soc(self, method, isotherm, refs):
+    def test_map_soc(self, method, isotherm, refs):
         galvamap = GalvanostaticMap(
             180.815,
             2.26e-3,
@@ -215,9 +241,26 @@ class TestGalvanostaticMap:
         )
         galvamap.calc()
 
-        np.testing.assert_almost_equal(np.mean(galvamap.SOC), refs[0], 4)
-        np.testing.assert_almost_equal(np.min(galvamap.SOC), refs[1], 4)
-        np.testing.assert_almost_equal(np.max(galvamap.SOC), refs[2], 6)
+        np.testing.assert_almost_equal(np.mean(galvamap.SOC), refs[0][0], 4)
+        np.testing.assert_almost_equal(np.min(galvamap.SOC), refs[0][1], 4)
+        np.testing.assert_almost_equal(np.max(galvamap.SOC), refs[0][2], 6)
+
+    def test_map_dataframe(self, method, isotherm, refs):
+        df = pd.read_csv(refs[1])
+
+        galvamap = GalvanostaticMap(
+            180.815,
+            2.26e-3,
+            4.58,
+            NL=2,
+            Nxi=2,
+            Npt=20000,
+            method=method,
+            isotherm=isotherm,
+        )
+        galvamap.calc()
+
+        pd.testing.assert_frame_equal(galvamap.to_dataframe().reset_index(drop=True), df)
 
 
 @pytest.mark.parametrize(
@@ -249,12 +292,12 @@ def test_map_plot(fig_test, fig_ref, method, isotherm):
     plt.clf()
     ref_ax = fig_ref.subplots()
 
-    x = galvamap.df_.L
-    y = galvamap.df_.xi
+    x = galvamap._df.L
+    y = galvamap._df.xi
 
     logells_ = np.unique(x)
     logxis_ = np.unique(y)
-    socs = galvamap.df_.SOC.to_numpy().reshape(logells_.size, logxis_.size)
+    socs = galvamap._df.SOC.to_numpy().reshape(logells_.size, logxis_.size)
 
     spline_ = scipy.interpolate.RectBivariateSpline(logells_, logxis_, socs)
 
