@@ -20,8 +20,7 @@ from matplotlib.testing.decorators import check_figures_equal
 # import galpynostatic.simulation.spline
 from .spline import SplineParams
 
-from .Simulation import GalvanostaticMap
-from .prof import GalvanostaticProfile
+from .Simulation import GalvanostaticMap, GalvanostaticProfile
 
 import numpy as np
 
@@ -79,27 +78,40 @@ def test_spline(capacity, potential, refs):
             "CN",
             False,
             [
-                [0.477057, 0.0, 0.972238],
-                [-0.006383, -0.120818, 0.157191],
+                [0.238529, 0.0, 0.972238],
+                [-0.000523, -0.133836, 0.201108],
                 PATH / "test_data" / "profileCN.csv",
+                PATH / "test_data" / "conCN.csv",
             ],
         ),
         (
             "CN",
             PATH / "LMO-1C.csv",
             [
-                [0.477057, 0.0, 0.972238],
-                [-0.006383, -0.120818, 0.157191],
-                PATH / "test_data" / "profileCN.csv",
+                [0.262806, 0.0, 0.972238],
+                [2.219972, 0.0, 4.39561],
+                PATH / "test_data" / "profileCN_iso.csv",
+                PATH / "test_data" / "conCN_iso.csv",
             ],
         ),
         (
             "BI",
             False,
             [
-                [0.428358, 0.0, 0.921084],
-                [-0.006383, -0.120818, 0.157191],
+                [0.238529, 0.0, 0.972238],
+                [-0.000523, -0.133836, 0.201108],
                 PATH / "test_data" / "profileBI.csv",
+                PATH / "test_data" / "conBI.csv",
+            ],
+        ),
+        (
+            "BI",
+            PATH / "LMO-1C.csv",
+            [
+                [0.262806, 0.0, 0.972238],
+                [2.219972, 0.0, 4.39561],
+                PATH / "test_data" / "profileBI_iso.csv",
+                PATH / "test_data" / "conBI_iso.csv",
             ],
         ),
     ],
@@ -138,8 +150,9 @@ class TestGalvanostaticProfile:
         np.testing.assert_almost_equal(np.mean(profile.E), refs[1][0], 6)
         np.testing.assert_almost_equal(np.min(profile.E), refs[1][1], 6)
         np.testing.assert_almost_equal(np.max(profile.E), refs[1][2], 6)
+
         
-    def test_dataframe(self, method, isotherm, refs):
+    def test_profile_dataframe(self, method, isotherm, refs):
         df = pd.read_csv(refs[2])
 
         profile = GalvanostaticProfile(
@@ -150,19 +163,37 @@ class TestGalvanostaticProfile:
             xi=1,
             Npt=20000,
             method=method,
+            isotherm=isotherm,
         )
         profile.calc()
 
         pd.testing.assert_frame_equal(profile._df, df)
+
+    def test_concentration_dataframe(self, method, isotherm, refs):
+        df = pd.read_csv(refs[3])
+
+        profile = GalvanostaticProfile(
+            180.815,
+            2.26e-3,
+            4.58,
+            L=-1,
+            xi=1,
+            Npt=20000,
+            method=method,
+            isotherm=isotherm,
+        )
+        profile.calc()
+
+        pd.testing.assert_frame_equal(profile.condf, df)
     
 
 @pytest.mark.parametrize(
     ("method", "isotherm"),
     [
         ("CN", False),
-        # ("CN", PATH / "LMO-1C.csv"),
+        ("CN", PATH / "LMO-1C.csv"),
         ("BI", False),
-        # ("BI", PATH / "LMO-1C.csv"),
+        ("BI", PATH / "LMO-1C.csv"),
     ],
 )
 @check_figures_equal(extensions=["png", "pdf"], tol=0.000001)

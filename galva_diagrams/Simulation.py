@@ -489,7 +489,7 @@ class GalvanostaticProfile:
             ct.POINTER(ct.c_double),
         ]
 
-        N = int(self.Npt / (2 * self.NPOINTS))
+        N = int(self.Npt /  self.NPOINTS)
 
         res1 = (ct.c_double * N)()
         res2 = (ct.c_double * N)()
@@ -529,7 +529,7 @@ class GalvanostaticProfile:
 
         self.SOC = np.asarray(np.frombuffer(res1, dtype=np.double, count=N))
 
-        self.E = np.asarray(np.frombuffer(res2, dtype=np.double, count=N))
+        self.E = np.asarray(np.frombuffer(res2, dtype=float, count=N))
 
         self.r_norm = np.asarray(
             np.frombuffer(res3, dtype=np.double, count=self.Npx)

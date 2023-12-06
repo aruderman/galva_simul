@@ -29,4 +29,4 @@ __version__ = "0.1.1"
 from .spline import SplineParams  # noqa
 
 # diagram calculations
-from .Simulation import GalvanostaticMap, GalvanostaticProfile  # noqa
+from .Simulation import GalvanostaticMap, GalvanostaticProfile
