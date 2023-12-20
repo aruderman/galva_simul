@@ -29,7 +29,7 @@ import pandas as pd
 
 import scipy.interpolate
 
-from .spline import SplineParams
+# from spline import SplineParams
 
 # ============================================================================
 # CONSTANTS
@@ -58,106 +58,109 @@ class GalvanostaticMap:
     A tool to build a diagnostic map intercalation materials under galvanostatic conditions.
 
 
-    The present software runs a set ofgalvanostatic simulations [1]_ to
-    systematically examine the maximum capacity that a material is capable to
-    accommodate at the single-particle level under different experimental
-    conditions. These simulations are used to build a diagnostic maps or zone
-    diagram [2, 3]_. A similar concept is used here to construct level diagrams
-    for galvanostatic simulations.
+    The present software performs a series of galvanostatic simulations [1]_
+    to systematically investigate the maximum state of charge (SOC) that a
+    material is capable of accommodating at the single particle level under
+    different experimental conditions. These simulations are used to produce
+    a diagnostic map or zone diagram [2, 3]_.
+    A similar concept is used here to construct level diagrams for
+    galvanostatic simulations using two variables:
+
+    :math:`\Xi = k^{0}\left (\frac{t_{h}}{C_{r}D}  \right )^{1/2}` and
+    :math:`\ell=\frac{r^{2}C_{r}}{zt_{h}D}`
+    at constant :math:`D` and :math:`k_0`.
+
+    The SOC are calculated by means of the interpolation of the experimental
+    or theoretical isotherm, the Fick's diffusion law and the Butler-Volmer
+    charge transfer equation with a transfer coefficient of 0.5.
 
 
-
-    This physics-based heuristic model [1]_ uses the maps in
-    :ref:`galpynostatic.datasets` to perform a grid search by taking different
-    combinations of the diffusion coefficient, :math:`D`, and the
-    kinetic-rate constant, :math:`k^0`, to fit experimental data of the
-    State-of-Charge (SOC) of the electrode material as a function of the
-    C-rates. This is done considering invariant all the other experimental
-    values involved in the parameters :math:`\xi` and :math:`\ell` of the
-    maps of the continuous galvanostatic model [1]_, such as the
-    characteristic diffusion length, :math:`d`, and the geometrical factor,
-    :math:`z` (see :ref:`galpynostatic.utils`).
-
-    Each time a set of parameters :math:`D` and :math:`k^0` is taken, the
-    SOC values are predicted and the mean square error (MSE) is calculated.
-    Then, the set of parameters that minimizes the MSE is obtained, thus
-    providing fundamental parameters of the system.
 
     Parameters
     ----------
-    dataset : str or pandas.DataFrame, default="spherical"
-        A str indicating the particle geometry (planar, cylindrical or
-        spherical) to use the datasets distributed in this package which can
-        also be loaded using the functions of the
-        :ref:`galpynostatic.datasets` to give it as a ``pandas.DataFrame`` with
-        the map of the maximum SOC values as function of the internal
-        parameters :math:`\log(\ell)` and :math:`\log(\xi)`.
+    Mr : float
+        Molecular mass of the electrode active material in :math:`g/mol`.
 
-    d : float, default=1e-4
-        Characteristic diffusion length (particle size) in cm.
+    m : float
+        Total mass of the electrode active material in :math:`g`.
 
-    z : integer, default=3
-        Geometric factor (1 for planar, 2 for cylinder and 3 for sphere).
+    rho : float
+        Density of the electrode active material in :math:`g/cm^3`.
 
-    dcoeff_lle : integer, default=-15
-        The lower limit exponent of the diffusion coefficient line to generate
-        the grid.
+    D : float, default=3.647e-13 :math:`cm/s^2`
+        The diffusion coefficient in :math:`cm/s^2`.
 
-    dcoeff_ule : integer, default=-6
-        The upper limit exponent of the diffusion coefficient line to generate
-        the grid.
+    ks : float, default=2.9502e-9
+        Kinetic rate constant in :math:`cm/s`.
 
-    dcoeff_num : integer, default=100
-        Number of samples of diffusion coefficients to generate between the
-        lower and the upper limit exponent.
+    isotherm : bool or pandas.DataFrame, default=False
+        A dataset containing the experimental isotherm values in the
+        format potential vs capacity. The isotherm is used to calculate
+        the equilibrium potential for a given SOC. If False the
+        equilibrium potential is calculated using the theroretical model
+        ... [].
 
-    k0_lle : integer, default=-14
-        The lower limit exponent of the kinetic rate constant line to generate
-        the grid.
+    g : float, default=0.0
+        Interaction parameter of the theroretical model used to obtain
+        the equilibrium potential if isotherm=False.
 
-    k0_ule : integer, default=-5
-        The upper limit exponent of the kinetic rate constant line to generate
-        the grid.
+    N_THREADS : int, default=-1
+        Number of threads in which the diagram calculation will be performed.
+        -1 means use all available threads.
 
-    k0_num : integer
-        Number of samples of kinetic rate constants to generate between the
-        lower and the upper limit exponent.
+    Npx : int, default=1000
+        Size of the spatial grid in wich the Fick's equation will be solved.
+
+    Npt : int, default=3000000
+        Size of the time grid in wich the Fick's equation will be solved.
+
+    NPOINTS : int, default=100
+        Npt/NPOINTS time points at which SOC and potential are printed.
+
+    T : float, default=298.0
+        Working temperature of the cell.
+
+    Rohm : float, default=0.0
+        Cell's resistance.
+
+    xi0 : float, default=2.0
+        Initial value of the :math:`\log(\Xi)`.
+
+    xif : float, default=-4.0
+        Final value of the :math:`\log(\Xi)`.
+
+    Nxi : int, default=5
+        Number of :math:`\log(\Xi)` values.
+
+    L0 : float, default=2.0
+        Initial value of the :math:`\log(\ell)`.
+
+    Lf : float, default=-4.0
+        Final value of the :math:`\log(\ell)`.
+
+    NL : int, default=5
+        Number of :math:`\log(\ell)` values.
+
+    geo : int default=2
+        Active material particle geometry. 0=planar, 1=cylindrical, 2=spherical.
+
+    method : str, default="CN"
+        Method to solve the Fick's equation. "CN"=Crank-Nicholson, "BI"=Backward
+        Implicit.
+
+    Efin : float, default=-0.15
+        Cut potential if isotherm=False.
 
     Notes
     -----
-    You can also give your own dataset to another potential cut-off in the
-    same format as the distributed ones and as ``pandas.DataFrame``, i.e. in
-    the column of :math:`\ell` the different values have to be grouped in
-    ascending order and for each of these groups the :math:`\xi` have to be in
-    decreasing order and respecting that for each group of :math:`\ell` the
-    same values are simulated (this is a restriction to perform the
-    ``scipy.interpolate.RectBivariateSpline``, since `x` and `y` have to be
-    strictly in a special order, which is handled internally by the
-    :ref:`galpynostatic.map`).
 
     References
     ----------
-    .. [1] F. Fernandez, E. M. Gavilán-Arriazu, D. E. Barraco, A. Visintin,
-       Y. Ein-Eli and E. P. M. Leiva. "Towards a fast-charging of LIBs
-       electrode materials: a heuristic model based on galvanostatic
-       simulations." `Electrochimica Acta 464` (2023): 142951.
+
 
     Attributes
     ----------
-    dcoeff_ : float
-        Predicted diffusion coefficient in :math:`cm^2/s`.
 
-    dcoeff_err_ : float
-        Uncertainty in the predicted diffusion coefficient.
-
-    k0_ : float
-        Predicted kinetic rate constant in :math:`cm/s`.
-
-    k0_err_ : float
-        Uncertainty in the predicted kinetic rate constant.
-
-    mse_ : float
-        Mean squared error of the best fitted model.
     """
 
     def __init__(
@@ -315,52 +318,46 @@ class GalvanostaticMap:
             else:
                 SOCC.append(0.99999)
 
-        self._df = pd.DataFrame(
+        self.df = pd.DataFrame(
             {
                 "L": self.logL,
                 "xi": self.logxi,
                 "SOC": SOCC,
             }
-        ).sort_values(by=["L", "xi"], ascending=[True, True])
+        ).sort_values(
+            by=["L", "xi"], ascending=[True, True], ignore_index=True
+        )
 
     def to_dataframe(self):
-        return self._df
+        """
+        A function that returns the diagram dataset.
+        """
+        return self.df
 
-    """
-    def plot_old(self, ax=None, plt_kws=None):
+    def plot(self, ax=None, plt_kws=None, clb=True, clb_label="SOC"):
+        """
+        A function that returns the axis of the two dimensional diagram
+        for a given axis.
+
+        Parameters
+        -----
+        ax : axis, default=None
+            Axis of wich the diagram plot.
+
+        plt_kws : dict, default=None
+            A dictionary containig the parameters to be passed to the axis.
+
+        clb : bool, default=True
+            Parameter that determines if the color bar will be displayed.
+
+        clb_label : str, default="SOC"
+            Name of the color bar.
+        """
         ax = plt.gca() if ax is None else ax
         plt_kws = {} if plt_kws is None else plt_kws
 
-        x = self.df["L"]
-        y = self.df["xi"]
-        z = self.df["SOC"]
-
-        contour_plot = ax.tricontourf(
-            x, y, z, cmap="viridis", levels=20
-        )  # Guardar el resultado de tricontourf
-
-        # Etiquetas de ejes y título
-        ax.set_xlabel("log(L)")
-        ax.set_ylabel("log(xi)")
-
-        if self.geo == 0:
-            ax.set_title("DIAGRAMA PLANO")
-        elif self.geo == 1:
-            ax.set_title("DIAGRAMA CILINDRICO")
-        elif self.geo == 2:
-            ax.set_title("DIAGRAMA ESFÉRICO")
-
-        # Barra de colores
-        plt.colorbar(contour_plot, label="SOC")
-
-        return ax
-    """
-
-    def plot(self, ax=None, plt_kws=None, clb=True, clb_label="SOC"):
-        ax = plt.gca() if ax is None else ax
-
-        x = self._df.L
-        y = self._df.xi
+        x = self.df.L
+        y = self.df.xi
 
         logells_ = np.unique(x)
         logxis_ = np.unique(y)
@@ -384,6 +381,7 @@ class GalvanostaticMap:
                 yeval.max(),
             ],
             origin="lower",
+            **plt_kws,
         )
 
         if clb:
@@ -393,11 +391,113 @@ class GalvanostaticMap:
 
         ax.set_xlabel(r"log($\ell$)")
         ax.set_ylabel(r"log($\Xi$)")
+        ax.set_title(f"Diagram, g={self.g}")
 
         return ax
 
 
 class GalvanostaticProfile:
+    r"""A tool to extrapolate isotherms varing C-rate and particle size.
+
+
+    This software simulates new isotherms individually, from an
+    experimental or theoretical one, dependding on the value of
+    :math:`\log(\ell)` and :math:`\log(\Xi)`. Given an isotherm for a
+    particular particle size and C-rate this tool will predict the system
+    behaviour varing :math:`\log(\ell)` and :math:`\log(\Xi)`. The
+    resulting isotherms are calculated by means of the interpolation of
+    the experimental or theoretical isotherm, the Fick's diffusion law and
+    the Butler-Volmer charge transfer equation with a transfer coefficient
+    of 0.5.
+
+
+    Parameters
+    ----------
+    Mr : float
+        Molecular mass of the electrode active material in :math:`g/mol`.
+
+    m : float
+        Total mass of the electrode active material in :math:`g`.
+
+    rho : float
+        Density of the electrode active material in :math:`g/cm^3`.
+
+    D : float, default=3.647e-13 :math:`cm/s^2`
+        The diffusion coefficient in :math:`cm/s^2`.
+
+    ks : float, default=2.9502e-9
+        Kinetic rate constant in :math:`cm/s`.
+
+    isotherm : bool or pandas.DataFrame, default=False
+        A dataset containing the experimental isotherm values in the
+        format SOC vs potential. The isotherm is used to calculate the
+        equilibrium potential for a given SOC. If False the equilibrium
+        potential is calculated using the theroretical model ... [].
+
+    g : float, default=0.0
+        Interaction parameter of the theroretical model used to obtain
+        the equilibrium potential if isotherm=False.
+
+    N_THREADS : int, default=-1
+        Number of threads in which the diagram calculation will be
+        performed. N_THREADS=-1 means use all available threads.
+
+    Npx : int, default=1000
+        Size of the spatial grid in wich the Fick's equation will be
+        solved.
+
+    Npt : int, default=3000000
+        Size of the time grid in wich the Fick's equation will be solved.
+
+    NPOINTS : int, default=100
+        Npt/NPOINTS time points at which SOC and potential are printed.
+
+    T : float, default=298.0
+        Working temperature of the cell.
+
+    Rohm : float, default=0.0
+        Cell's resistance.
+
+    xi : float, default=2.0
+        Value of the :math:`\log(\Xi)`.
+
+    L : float, default=2.0
+        Value of the :math:`\log(\ell)`.
+
+    geo : int default=2
+        Active material particle geometry. 0=planar, 1=cylindrical,
+        2=spherical.
+
+    method : str, default="CN"
+        Method to solve the Fick's equation. "CN"=Crank-Nicholson,
+        "BI"=Backward Implicit.
+
+    Efin : float, default=-0.15
+        Cut potential if isotherm=False.
+
+    SOCperf : float default=0.5
+        SOC value at wich the concentration profile will be calculated.
+
+    Notes
+    -----
+
+    References
+    ----------
+
+
+    Attributes
+    ----------
+    isotherm_df : pandas.DataFrame
+        A dataset containig the resulting isotherm in the potential vs SOC
+        format.
+
+    concentration_df : pandas.DataFrame
+        A dataset containing the resulting concentration profile in the
+        form :math:`\theta` (concentration) vs :math:`r` (distance to the
+        center of the particle).
+
+    """
+
     def __init__(
         self,
         Mr: float,
@@ -489,7 +589,7 @@ class GalvanostaticProfile:
             ct.POINTER(ct.c_double),
         ]
 
-        N = int(self.Npt /  self.NPOINTS)
+        N = int(self.Npt / self.NPOINTS)
 
         res1 = (ct.c_double * N)()
         res2 = (ct.c_double * N)()
@@ -539,28 +639,132 @@ class GalvanostaticProfile:
             np.frombuffer(res4, dtype=np.double, count=self.Npx)
         )
 
-        self._df = pd.DataFrame(
+        self.isotherm_df = pd.DataFrame(
             {
                 "SOC": [ss for ss in self.SOC if ss != 0.0],
                 "Potential": [ss for ss in self.E if ss != 0.0],
             }
         )
 
-        self.condf = pd.DataFrame({"r_norm": self.r_norm, "tita": self.tita1})
+        self.concentration_df = pd.DataFrame(
+            {"r_norm": self.r_norm, "theta": self.tita1}
+        )
 
-    def plot(self, ax=None, plt_kws=None):
+    def isoplot(self, ax=None, plt_kws=None):
+        """
+        A function that returns the axis of the simulated isotherm.
+
+        Parameters
+        -----
+        ax : axis, default=None
+            Axis of wich the diagram plot.
+
+        plt_kws : dict, default=None
+            A dictionary containig the parameters to be passed to the axis.
+        """
         ax = plt.gca() if ax is None else ax
         plt_kws = {} if plt_kws is None else plt_kws
 
-        x = self._df["SOC"]
-        y = self._df["Potential"]
+        x = self.isotherm_df["SOC"]
+        y = self.isotherm_df["Potential"]
 
         ax.plot(x, y, **plt_kws)
 
-        # Etiquetas de ejes y título
         ax.set_xlabel("SOC")
         ax.set_ylabel("Potential")
-        ax.set_title("Isotherm")
+        ax.set_title(f"Isotherm, g={self.g}")
         # ax.legend()
 
         return ax
+
+    def isoplot(self, ax=None, plt_kws=None):
+        """
+        A function that returns the axis of the simulated concentration
+        profile for a given SOCperf.
+
+        Parameters
+        -----
+        ax : axis, default=None
+            Axis of wich the diagram plot.
+
+        plt_kws : dict, default=None
+            A dictionary containig the parameters to be passed to the axis.
+        """
+        ax = plt.gca() if ax is None else ax
+        plt_kws = {} if plt_kws is None else plt_kws
+
+        x = self.concentration_df["r_norm"]
+        y = self.concentration_df["theta"]
+
+        ax.plot(x, y, **plt_kws)
+
+        ax.set_xlabel("$r_{norm}$")
+        ax.set_ylabel("$\theta$")
+        ax.set_title(f"Concentration profile, SOC={self.SOCperf}")
+        # ax.legend()
+
+        return ax
+
+
+class SplineParams:
+    def __init__(self, df, col_names=["capacity", "potential"]):
+        self.df = df
+        self.capacity = self.df[col_names[0]].to_numpy()
+        self.Qmax = np.max(self.capacity)
+        self.capacity = self.df[col_names[0]].to_numpy() / self.Qmax
+        self.potential = self.df[col_names[1]].to_numpy()
+        self.Eoff = np.min(self.potential)
+        self.Niso = self.df.shape[0]
+
+    def iso_spline(self):
+        """
+        The function iso_spline takes the  normalized experimental
+        capacity or the smooth isotherm.
+        It returns the parameters ai, bi, ci, and di of the cubic
+        spline of the isotherm. These parameters can be used to
+        calculate the equilibrium potential.
+        """
+
+        pot = self.potential
+        cap = self.capacity
+
+        ai = pot.copy()
+        hi = cap[1:] - cap[:-1]
+        alfai = np.zeros(self.Niso - 1)
+
+        li = np.zeros(self.Niso)
+        ui = np.zeros(self.Niso)
+        zi = np.zeros(self.Niso)
+
+        ci = np.zeros(self.Niso)
+        bi = np.zeros(self.Niso - 1)
+        di = np.zeros(self.Niso - 1)
+
+        for i in range(1, self.Niso - 1):
+            alfai[i] = (
+                3 * (pot[i + 1] - pot[i]) / hi[i]
+                - 3 * (pot[i] - pot[i - 1]) / hi[i - 1]
+            )
+
+        li[0] = 1.0
+        ui[0] = zi[0] = 0.0
+
+        for i in range(1, self.Niso - 1):
+            li[i] = 2 * (cap[i + 1] - cap[i - 1]) - (hi[i - 1] * ui[i - 1])
+            ui[i] = hi[i] / li[i]
+            zi[i] = (alfai[i] - hi[i - 1] * zi[i - 1]) / li[i]
+
+        li[self.Niso - 1] = 1.0
+        zi[self.Niso - 1] = ci[self.Niso - 1] = 0.0
+
+        for j in range(self.Niso - 2, -1, -1):
+            ci[j] = zi[j] - ui[j] * ci[j + 1]
+            bi[j] = (pot[j + 1] - pot[j]) / hi[j] - hi[j] / 3 * (
+                ci[j + 1] + 2 * ci[j]
+            )
+            di[j] = (ci[j + 1] - ci[j]) / (3 * hi[j])
+
+        self.ai = ai
+        self.bi = bi
+        self.ci = ci
+        self.di = di
