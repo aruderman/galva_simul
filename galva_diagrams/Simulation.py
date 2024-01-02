@@ -174,7 +174,7 @@ class GalvanostaticMap:
         g=0.0,
         N_THREADS=-1,
         Npx=1000,
-        Npt=int(3e6),
+        Npt=int(1e5),
         NPOINTS=100,
         T=298.0,
         Rohm=0,
@@ -361,7 +361,7 @@ class GalvanostaticMap:
 
         logells_ = np.unique(x)
         logxis_ = np.unique(y)
-        socs = self._df.SOC.to_numpy().reshape(logells_.size, logxis_.size)
+        socs = self.df.SOC.to_numpy().reshape(logells_.size, logxis_.size)
 
         spline_ = scipy.interpolate.RectBivariateSpline(
             logells_, logxis_, socs
@@ -510,7 +510,7 @@ class GalvanostaticProfile:
         isotherm=False,
         g=0.0,
         Npx=1000,
-        Npt=int(3e6),
+        Npt=int(1e5),
         NPOINTS=100,
         T=298.0,
         Rohm=0,
