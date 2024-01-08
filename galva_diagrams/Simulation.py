@@ -391,7 +391,6 @@ class GalvanostaticMap:
 
         ax.set_xlabel(r"log($\ell$)")
         ax.set_ylabel(r"log($\Xi$)")
-        ax.set_title(f"Diagram, g={self.g}")
 
         return ax
 
@@ -670,14 +669,9 @@ class GalvanostaticProfile:
 
         ax.plot(x, y, **plt_kws)
 
-        ax.set_xlabel("SOC")
-        ax.set_ylabel("Potential")
-        ax.set_title(f"Isotherm, g={self.g}")
-        # ax.legend()
-
         return ax
 
-    def isoplot(self, ax=None, plt_kws=None):
+    def consplot(self, ax=None, plt_kws=None):
         """
         A function that returns the axis of the simulated concentration
         profile for a given SOCperf.
